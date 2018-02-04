@@ -1,0 +1,493 @@
+---
+title: "Homework 3"
+author: "Bilal Shakir"
+date: '2018-01-24'
+output: pdf_document
+---
+
+I start off by loading in the required packages in the following code chunk. 
+
+```{r cars}
+
+## clearing out the global environment is a good idea before starting out
+
+remove(list=ls())
+
+## loading in the required datasets
+
+pacman::p_load(tidyr, tidyverse, 
+               ggplot2, ggthemes, 
+               dplyr, RColorBrewer, 
+               gridExtra, 
+               texreg, readr,
+               foreign, readstata13, 
+               interplot, stargazer, 
+               Zelig, broom,
+               car, purrr, 
+               MASS, arm, 
+               pander, knitr, 
+               psych, cowplot, 
+               margins, scales, 
+               pastecs, plm, survival, 
+               ggplot2, ggrepel, pscl, 
+               GGally, foreign,  RTextTools, 
+               feather, 
+               lfe, dplyr, corrplot, haven)
+  
+```
+
+Note that this assignment is based on the following paper:
+
+Baccini, Li, and Mirkina. (2014). "Corporate Tax Cuts and Foreign Direct Investment." *Journal of Policy Analysis and Management*, vol. 32(4): 977-1006.
+
+In the following code chunk, I load the dataset.
+
+```{r pressure, echo=FALSE}
+
+## renaming dataset for ease
+
+russia_data <- read_dta("Dataset_Russia_Stata.dta")
+
+# write_rds(gravity_data, "gravity_rds.rds")
+# gravity_data <- read_rds("gravity_rds.rds")
+
+
+```
+
+## perform basic descriptives 
+
+Now I show some basic descriptive statistics. A glimpse of the dataset reveals that the number of variables is too large for me to describe each variable individually. As such, I only show the descriptive statistics of the variables that I use in my baseline model. 
+
+```{r}
+
+## glimpse the data set
+glimpse(russia_data)
+
+## as the dataset has 27 different variables. It is too large to show the descriptives statistics for the entire dataset. Therefore, I only show the descriptives for my main variables of interest
+
+## descriptive for real GRP growth 
+realgrpgrowth_d <- stat.desc(russia_data$realgrpgrowth)
+
+## descriptive for Gross regional Product (GRP)
+grp_ln_d <- stat.desc(russia_data$grp_ln)
+
+## descriptive for trade (log)
+trade_ln_d <- stat.desc(russia_data$trade_ln)
+
+## descriptives for roaddensity ln
+roaddensityln_d <- stat.desc(russia_data$roaddensityln)
+
+## corruption
+corruption_d <- stat.desc(russia_data$corruption)
+
+## invrisk
+invrisk_d <- stat.desc(russia_data$invrisk)
+
+descriptives <- data.frame(realgrpgrowth_d,grp_ln_d, 
+                    trade_ln_d, roaddensityln_d, 
+                    corruption_d, invrisk_d)
+
+## Setnames
+descriptives_names <- setNames(descriptives, 
+                             c("Real GRP growth", 
+                               "Gross Regional Product (GRP)", 
+                               "Trade_ln", "Road density", 
+                               "Corruption", "Investment Risk")); print(descriptives_names)
+```
+
+By running the basic descriptive statistics above I find that there are quite a few missing values in the data. This is especially true for variables like our DV *realgrpgrowth* and other variables like *invrisk* and *trade_ln* . Since there are missing values in the data I run a pairwise correlation as well to check for a more precise correlation between paired variables.
+
+#### let's make those boxplots!
+
+In the following code chunk I prepare to show boxplots for my variables. 
+
+```{r}
+
+## Creating new categorical variables for the x axis
+
+russia_data$grp_ln_x <- rep(1, each = 1148) %>% as.factor() 
+russia_data$realgrpgrowth_x <-  rep(1, each = 1148) %>% as.factor()
+russia_data$trade_ln_x <- rep(2, each = 1148) %>% as.factor()
+russia_data$roaddensityln_x <- rep(3, each = 1148)  %>% as.factor()
+russia_data$corruption_x <- rep(4, each = 1148) %>% as.factor()
+russia_data$invrisk_x <- rep(5, each = 1148)  %>% as.factor()
+russia_data$realgrpgrowth_x <-  rep(1, each = 1148) %>% as.factor()
+
+## Boxplot of realgrpgrowh
+
+realgrpgrowth_boxplot <- ggplot(subset(russia_data, 
+                                !is.na(realgrpgrowth)), 
+                      aes(x = realgrpgrowth_x, 
+                          y = realgrpgrowth)) +
+  geom_boxplot() +
+  theme_classic(); realgrpgrowth_boxplot
+
+## Boxplot of grp_ln
+
+grp_ln_boxplot <- ggplot(subset(russia_data, 
+                                !is.na(realgrpgrowth)), 
+                      aes(x = grp_ln_x, 
+                          y = grp_ln)) +
+  geom_boxplot() +
+  theme_classic(); grp_ln_boxplot
+
+
+## Boxplot of trade_ln_x
+
+ trade_ln_boxplot <- ggplot(subset(russia_data, 
+                                   !is.na(trade_ln)), 
+                      aes(x =  trade_ln_x, 
+                          y =  trade_ln)) +
+   geom_boxplot(color = "firebrick4") +
+   theme_classic(); trade_ln_boxplot
+
+## Boxplot of roaddensityln_x
+
+ roadddensity_ln_boxplot <- ggplot(subset(russia_data,
+                                          !is.na(roaddensityln)), 
+                                   aes(x = roaddensityln_x, 
+                          y =  roaddensityln)) +
+   geom_boxplot() +
+   theme_classic(); roadddensity_ln_boxplot
+
+## Boxplot of corruption_x
+
+corruption_boxplot <- ggplot(subset(russia_data, 
+                                    !is.na( corruption)), 
+                      aes(x = corruption_x, 
+                          y =  corruption)) +
+  geom_boxplot() +
+  theme_classic(); corruption_boxplot
+
+## Boxplot of invrisk_x
+
+invrisk_boxplot <- ggplot(subset(russia_data, 
+                                !is.na(invrisk)), 
+                      aes(x = invrisk_x, 
+                          y = invrisk)) +
+  geom_boxplot() +
+  theme_classic(); invrisk_boxplot
+
+
+box_cowplot <- plot_grid(realgrpgrowth_boxplot,
+          grp_ln_boxplot, 
+          trade_ln_boxplot, 
+          roadddensity_ln_boxplot, 
+          corruption_boxplot, 
+          invrisk_boxplot, 
+          align = "v", 
+          ncol = 2, 
+          label_fontfamily = "serif", 
+          label_y = 1, 
+          rel_widths = c(1, 1.3),
+          label_size = 9); box_cowplot
+
+
+```
+
+From the figure with the boxplots of all the variables we can observe that 
+
+
+### Density plot for realgrpgrowth
+
+```{r}
+
+density_realgrpgrpwth <- ggplot(subset(russia_data, 
+              !is.na(realgrpgrowth)), 
+       aes(realgrpgrowth)) +
+  geom_density(colour = "firebrick4") +
+  ggtitle("Kernel Density Plot for Real GRP growth") +
+  theme_classic(); density_realgrpgrpwth
+
+```
+
+From the kernel density plot above we can see that by and large, *realgrpgrowth* is relatively evenly distributed. Therefore, there is no need for us to to log transform our dependent variable for further analysis. 
+
+#### correlation plot
+
+```{r}
+
+
+russia_data %>% dplyr::select(realgrpgrowth, 
+                              invrisk, grp_ln, trade_ln, 
+                              corruption, roaddensityln, empl_high) %>%
+  cor(use = "complete.obs") %>% corrplot(type = "upper", 
+                                         order = "hclust", 
+                                         tl.col = "black", 
+                                         tl.srt = 45, 
+                                         tl.cex = 0.5,
+                                         method = "number",
+                                         title = "Figure 2: Correlation plot for baseline variables")
+
+```
+
+The correlation plot above showcases that from the selected variables there is only a high degree of positive correlation between *trade_ln* and *grp_ln*. The rest of the choosen explanatory variables seem to be allright.However, I include both of these variables in my models in any case as both the inclusion of both these variables is standard practice as underlined by Baccini et al (2014). Please note that I provide further description of the distribution of my data while analyzing the modelling choices for Task 1.2 below. 
+
+### Task 1.2
+
+Implement a standard D-I-D estimation, using a simple OLS and the interaction between targeted and period as well as universal and period and including the relevant controls. Discuss the results
+
+## Solution 
+
+This question requires us to run an OLS regression to capture the interaction effect between the "universal" and "targeted" treatment with "period". These interaction variables that score TRUE for both these conditions are called *universal_cut* and *targeted_cut* respectively. Recall that period is a dummy variable for the post-2003 period on the dependent variable real GRP growth rate. In other words, the period dummy signifies the year in which the treatment potentially came into effect. 
+In addition, I add some additional control variables after getting an intuition about whould should be included in estimating realgrpgrowth after reading Baccini et al (2014) . Some of the controls that I include are investment risk, road density and corruption as they are proxies for institutions and infrastructure within different regions of Russia. Note that both trade and grp are always included in a growth model (Baccini et al 2014).  
+
+All the control variables on the RHS of my model have been lagged by 1 year.  I've also included the corruption index for the different regions of Russia at the time and the share of people in employment with higher education as controls.  The presence of high corruption typically impedes real grp growth and this might be true despite a tax cut. For example, a corporate tax cut in a region with a high corruption index is not likely to translate into a high real grp growth rate. One explanation for this is that despite the tax cut potential investors are not convinced to invest in a region with a high corruption index as they do not view low taxes as a credible commitment that will lead to increased profitability. We have some weak support for this hypothesis from the preliminary descriptive statistics that we have carried out such as the correlation plot  which shows that there is a negative albeit very weak correlation between real grp growth and corruption. 
+
+Whereas, a greater share of people with higher education skills in a region can be indicative of a mobile and adaptable workforce. A more educated/highly skilled labor force is more likely to yield a higher real GRP growth rate than unskilled labor force. 
+
+```{r}
+
+## Generating lags
+
+  russia_data <- read_dta("Dataset_Russia_Stata.dta") %>% 
+    arrange(region) %>%
+    group_by(region) %>%
+    mutate(
+      grp_ln_lag = lag(grp_ln),
+      grpgrowth_lag = lag(realgrpgrowth),
+      trade_ln_lag = lag(trade_ln),
+      roaddensityln_lag = lag(roaddensityln),
+      corruption_lag = lag(corruption),
+      invrisk_lag = lag(invrisk),
+      empl_high_lag = lag(empl_high))
+
+model_1 <- lm(realgrpgrowth ~ invrisk_lag + 
+                grp_ln_lag + trade_ln_lag + 
+                roaddensityln_lag + corruption_lag + 
+                universal + period + universal_cut + 
+                targeted + targeted_cut + empl_high_lag,
+              na.action = na.exclude, 
+              data = russia_data)
+
+screenreg(list(model_1))
+ 
+# ORANGE - UNIVERSAL
+# YELLOW - TARGETED
+
+russia_data$fitted_model_1 <- predict(model_1)
+russia_data$resid_model_1 <- resid(model_1)
+
+## plotted
+
+ggplot(subset(russia_data, 
+              !is.na(realgrpgrowth)),
+       aes(fitted_model_1,
+           realgrpgrowth)) + 
+  geom_point() +
+  geom_smooth(method = "lm", 
+              se = FALSE) +
+  ggtitle("Fitted vs Actual Values plot")
+
+```
+
+
+The regression results above show a negative relationship between the variable "universal_cut" and the dependent variable, real GRP growth. Whereas, "targeted_cut" is a variable that captures the interaction between the "targeted" treatment and the dummy variable period signifying cases of observations in the post-2003 period. Consequently, cases coded as "1" in this variable are regions which implemented discriminatory tax-cuts that came into force in/after 2003. Regions of Russia that implement discriminatory tax cuts are coded as "0" if the discriminatory tax intervention occurred before 2003. Moreover, "0" is coded along the cases in the dataset which had not implemented discriminatory tax cuts at all. 
+
+The key point that we take away is a lack of the statistical significance of both universal_cut and targeted_cut on our DV. This is applicable for our other explanatory variables (universal and targeted as well).
+
+One result that is particular important to highlight is the positive relationship between "Period" and real GRP growth. The significance of the post-2003 dummy shows a positive relationship between the year 2003 as a threshold with respect to real GRP growth among regions of Russia in the data. This is indicative of the significance of allowing autonomous taxation to regional government and an increase in positive real GRP growth.  Moreover, other results that I believe are pertinent to discuss are the statistically significant positive relationships between the real GRP growth and "trade_ln_lag" and "roaddensityln_lag." Whereas, "grp_ln_lag" is negatively correlated with the dependent variable. The fitted vs actual values plot in the code chunk above shows that while our model isn't perfect, however, at the same time it is not completely useless either. 
+
+### Task 1.3
+
+3. include region and year fixed effects and re-estimate the model in point 2 using OLS regression. Discuss the results;
+
+### Solution 1.3
+
+Now, I include year and region fixed effects to the baseline formula that I used in Task 1.2. The interaction variables have region and fixed effects added to them between the treatment and period. I retain the control variables from my previous regression (Solution 1.2).
+
+```{r}
+
+## OLS with year and region fixed effects -- incorrect specification
+
+model_2 <- felm(realgrpgrowth ~ invrisk_lag + grp_ln_lag + trade_ln_lag + 
+                roaddensityln_lag + corruption_lag + universal_cut + 
+                  targeted_cut + empl_high_lag | region + year,
+                data = russia_data)
+
+screenreg(list(model_2))
+
+model_3 <- felm(realgrpgrowth ~ invrisk_lag + grp_ln_lag + trade_ln_lag + 
+                roaddensityln_lag + corruption_lag + universal_cut + 
+                  targeted_cut + empl_high_lag + grpgrowth_lag | region + year,
+                data = russia_data)
+
+screenreg(list(model_3))
+
+stargazer(model_1, model_2, model_3, 
+          header = FALSE,
+          add.lines = list(c("Fixed Effects", "No", "Yes", "Yes")),
+          omit.stat = c("adj.rsq", "f"), 
+          model.numbers = FALSE,
+          model.names = FALSE,
+          dep.var.caption = "Dependent Variable: Real GRP growth",
+          dep.var.labels.include = FALSE,
+          column.labels = c("Model 1", "Model 2", "Model 3"),
+          title = "Difference-in-Differences OLS",
+          covariate.labels = c("Investment risk", 
+                               "GRP (log)", 
+                               "Trade (log)", 
+                               "Road density (log)", 
+                               "Corruption",
+                               "Non-discriminatory cut",
+                              "Period",
+                              "Non-discriminatory cut X Period",
+                              "Discriminatory cut",
+                              "Discriminatory cut X Period",
+                              "Share of people employed in higher education",
+                              "Lagged GRP growth (log)"),
+          notes = "All control variables have been lagged one year.", 
+          type = "text")
+
+# ORANGE - UNIVERSAL
+# YELLOW - TARGETED
+```
+
+The distinguishing feature of the inclusion of year and region fixed effects can be seen is that now the *universal_cut* variable from the regression table above is statistically significant. In other words, we now have a statistically significant effect for the difference in differences. Moreover, there is potential that there was possibility of decreased omitted variable bias of our estimates in our model. 
+
+Moreover, we do not include "period" in this model specification as it is replaced instead with pre-coded treatment variables. These pre-coded treatment variables have already accounted for the time-period making its inclusion in our model unnecessary. On the other hand, the inclusion of interaction variables and fixed effects assists in a robust controlling of time in our model. The use of cut variables reduces the effect of the inclusion period might have on the regression as time has already been accounted for in the regression. 
+
+Now, coming back to the tax cuts themselves we can see that there is a negative correlation between both 'universal_cut' and 'targeted_cut' with respect to the dependent variable real GRP growth. In other words, both non-discriminatory and discriminatory tax cuts are negatively correlated with real GRP growth. Yet, the relationship is only statistically significant for 'universal_cut' which is the non discriminatory tax cut post-2003 period. The implication here seems to be that Russia should increase non-discriminatory taxation to stimulate growth. 
+
+Lastly, its interesting to see that a lot of the controls except the lagged variable for GRP lose and share of people in higher education lose their statistical significance in this model. This increases the validity of the argument for the inclusion of region fixed effects in the model as we may control for only time-variant variation in this quasi-experiment.
+
+### Task 1.4
+
+4. include leads for both targeted and universal regions. Discuss the results;
+
+### Solution 1.4
+
+One of the basic assumption of the Difference in Difference (DID) model is that the treatment and control group will follow the same trend without the treatment or intervention. This can also be termed as the parallel trends assumption. In the code chunk below I generate these leads and test their significance. If the leads are significant then that is evidence of anticipatory effects, which is problematic for the parallel trends assumption. 
+
+```{r}
+
+
+# ORANGE - UNIVERSAL
+# YELLOW - TARGETED  
+
+## generating new variables
+russia_data$treatment <- ifelse(russia_data$universal == 1, 
+                           "Non-discriminatory Tax Cut", 
+                           ifelse(russia_data$targeted == 1, 
+                                  "Discriminatory Tax Cut", 
+                                  "No Tax Cut"))
+
+## now making our plot to visualize the trends
+
+figure_5 <- ggplot(russia_data, 
+       aes(year, realgrpgrowth, col = treatment)) + 
+  geom_vline(xintercept = 2003, 
+             linetype = "dashed", 
+             col = "grey") +
+#  geom_jitter(alpha = 0.2) +
+  stat_summary(fun.y = mean, geom = "line") +
+  scale_x_continuous(breaks = seq(1995, 2008, by = 1)) +
+  xlab("Year") + 
+  ylab("GRP (log)") + 
+  ggtitle("Figure 5: Average Regional GRP growth by Tax Policy, 1995 - 2008") +
+  guides(col = guide_legend(title = NULL)) + 
+  theme(legend.position = "bottom"); figure_5 
+
+ggplot(russia_data, 
+       aes(year, realgrpgrowth, col = treatment)) + 
+  geom_vline(xintercept = 2003, linetype = "dashed", col = "grey") +
+#  geom_jitter(alpha = 0.2) +
+  stat_summary(fun.y = mean, geom = "line") +
+  scale_x_continuous(breaks = seq(1995, 2008, by = 1)) +
+  xlab("Year") + 
+  ylab("GRP (log)") + 
+  ggtitle("Average Real GRP growth by Tax Policy, 1995 - 2008") +
+  guides(col = guide_legend(title = NULL)) + 
+  theme(legend.position = "bottom")
+# ORANGE - UNIVERSAL
+# YELLOW - TARGETED 
+
+# Generate leads
+russia_data <- russia_data %>%
+  mutate(
+    universal_lead = ifelse(universal == 1 & year %in% c(2001, 2002), 1, 0),
+    targeted_lead = ifelse(targeted == 1 & year %in% c(2001, 2002), 1, 0)
+  )
+
+# ORANGE - UNIVERSAL
+# YELLOW - TARGETED
+
+
+model_4 <- felm(realgrpgrowth ~ invrisk_lag + grp_ln_lag + 
+                  trade_ln_lag + roaddensityln_lag + corruption_lag 
+                + universal_cut + targeted_cut + grpgrowth_lag +
+                  universal_lead + targeted_lead + empl_high_lag | region + year,
+                data = russia_data)
+
+screenreg(list(model_3, model_4))
+
+
+```
+
+We can see that there is a negligible difference in the R squared after including 1 year leads for both universal and discriminatory tax cuts for the different regions of Russia from the previous question. Overall, the results seem largely consistent with the results achieved in the earlier specification of the model. The inclusion of one year leads for both discriminatory and non-discriminatory tax cuts are not statistically significant. What is notable, however, is the fact that the inclusion of one year leads results in a decrease in the coefficient of universal_cut on realgrpgrowth. Though the statistical significance remains the same and the direction of the relationship remains negative.
+
+The lack of potential anticipatory effects increases our confidence in the exogeneity of the treatment (or the tax cuts). This implies that actors did not anticipate the annoucement of tax cuts in the fiscal regions of Russia. Moreover, we can observe from Figure 5 above that with the exception of one outlier region which is pulling up the parallel trends, by and large the different regions of Russia seem to be following the same trends. In other words, regions that implemented no tax cut as well as those that did (whether it be discriminatory or non-discriminatory) are all following the same trend and there is little evidence of any anticipatory effects. 
+
+Furthermore, we also find evidence that as there is no anticipation of tax cuts, an indiscriminate tax cuts has an improved effect on real grp growth.This is in contrast with a discriminatory tax cut that is statistically insignificant. One explanation for this can be perhaps that since institutions in Russia are weak there is a great deal of an inter relationship between the business sector and the government. In other words, the discriminate tax cuts are ineffective in stimulating growth as actors can potentially reorient  agreed upon and negotiated in advance. However, at the same time the leads are insigifnificant so such an explanation of prior negotiations is question. That said, there is evidence, however, that non-discriminatory tax cutes are better for generating stimulus for the Russian economy if they were implemented in 2002. 
+
+### Task 1.5
+
+5. include region-specific trends to test the parallel trend assumption. Discuss the results
+
+### Solution 1.5
+
+Note that in the following code chunk we include region specific trends to test the parallel trends assumption. Note that if the universal_cut and targeted_cut dummies are still significant after the inclusion of region specific trends, that would be evidence that the parallel trends holds. However, if the trends kill the significance of the treatment, this implies that the parallel trends assumption does not hold. 
+
+```{r}
+
+# ORANGE - UNIVERSAL
+# YELLOW - TARGETED
+
+# this includes region year fixed effects
+
+model_5 <- lm(realgrpgrowth ~ invrisk_lag + grp_ln_lag + 
+                trade_ln_lag + roaddensityln_lag + corruption_lag 
+              + universal_cut + targeted_cut  + 
+                factor(region)*year + empl_high_lag,
+              data = russia_data)
+
+screenreg(list(model_5))
+
+
+stargazer(model_4, model_5, 
+          keep = c("grp_ln_lag", "trade_ln_lag", "roaddensityln_lag", 
+            "corruption_lag", "invrisk_lag",
+              "universal_cut", "targeted_cut", "grpgrowth_lag"),           
+          header = FALSE,
+          add.lines = list(c("Fixed Effects", "Yes", "Yes"), 
+                           c("Region-Specific Trends", "No", "Yes")),
+          omit.stat = c("adj.rsq", "f"), 
+          model.numbers = FALSE,
+          model.names = FALSE,
+          dep.var.caption = "Dependent Variable: Real GRP growth",
+          dep.var.labels.include = FALSE,
+          column.labels = c("Model 4", "Model 5"),
+          title = "Difference-in-Differences Parallel Trend Diagnostics",
+          notes = "All control variables have been lagged one year.", 
+          type = "text")
+                 
+
+```
+
+The crucial insight from the table above is that the statistical significance of *universal_cut* is not killed after the inclusion of the region specific trends in our model. This provides support for the parallel trends assumption. In fact, the coefficient on the non-discriminatory tax cut decreases even further after the inclusion of region specific trends. With regards to overall goodness of fit, we can observe that, for example, the r-squared remains largely similar as earlier.
+
+However, the retention of the statistical significance of "universal_cut" is desirable in this case as it indicative of the fact that there are no characteristics of the individual regions that affect the impact of tax policies on real GRP growth. In other words, this allows us to accept the parallel trend assumption that the regions are comparable and therefore our DID estimation is valid. 
+
+### Task 1.6 (optional)
+
+Optional: try a D-I-D with treatment intensity with or without region and year fixed effects. Note that the intensity variable must be chosen in a theoretically informed way. Provide the graphical interpretation of the results of the interaction term.
+
+### Solution
+
+```{r}
+
+
+
+```
+
+
