@@ -1,0 +1,1176 @@
+---
+title: "R Notebook"
+output: html_notebook
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{r}
+
+tbl1 <- read.dta("maketable1.dta")
+base <- filter(tbl1, 
+               baseco == 1)
+
+world.means <- c(
+                mean(tbl1$logpgp95, na.rm = TRUE),
+                mean(tbl1$loghjypl, na.rm = TRUE), 
+                mean(tbl1$avexpr, na.rm = TRUE), 
+                mean(tbl1$cons1, na.rm = TRUE), 
+                mean(tbl1$cons00a, na.rm = TRUE), 
+                mean(tbl1$democ00a, na.rm = TRUE),
+                mean(tbl1$euro1900, na.rm = TRUE)/100,
+                mean(NA), 
+                sum(!is.na(tbl1$logpgp95)))
+
+
+world.sd <- c(round(c(
+                sd(tbl1$logpgp95, na.rm = TRUE),
+                sd(tbl1$loghjypl, na.rm = TRUE), 
+                sd(tbl1$avexpr, na.rm = TRUE), 
+                sd(tbl1$cons1, na.rm = TRUE), 
+                sd(tbl1$cons00a, na.rm = TRUE), 
+                sd(tbl1$democ00a, na.rm = TRUE),
+                sd(tbl1$euro1900, na.rm = TRUE)/100,
+                sd(NA)), digits = 1),
+                "-"
+)
+
+base.means <- c(round(c(
+                mean(base$logpgp95, na.rm = TRUE),
+                mean(base$loghjypl, na.rm = TRUE), 
+                mean(base$avexpr, na.rm = TRUE), 
+                mean(base$cons1, na.rm = TRUE), 
+                mean(base$cons00a, na.rm = TRUE), 
+                mean(base$democ00a, na.rm = TRUE),
+                mean(base$euro1900, na.rm = TRUE)/100,
+                mean(base$logem4, na.rm = TRUE),
+                sum(!is.na(base$logpgp95))),
+                digits = 1)
+)
+
+base.sd <- c(round(c(
+                sd(base$logpgp95, na.rm = TRUE),
+                sd(base$loghjypl, na.rm = TRUE), 
+                sd(base$avexpr, na.rm = TRUE), 
+                sd(base$cons1, na.rm = TRUE), 
+                sd(base$cons00a, na.rm = TRUE), 
+                sd(base$democ00a, na.rm = TRUE),
+                sd(base$euro1900, na.rm = TRUE)/100,
+                sd(base$logem4, na.rm = TRUE)), digits = 1),
+                "-"
+)
+
+tbl1.varnames <- c("Log GDP per capita (PPP) in 1995",
+                   "Log output per worker in 1988",
+                   "Average protection against expropriation risk, 1985-95",
+                   "Constraint on executive in first year of independence",
+                   "Constraint on executive in 1900",
+                   "Democracy in 1900",
+                   "European settlements in 1900",
+                   "Log european settler mortality",
+                   "Number of observations")
+
+base$q1 <- ifelse(base$extmort4 <= quantile(base$extmort4, 0.25), 1, 0)
+base$q2 <- ifelse(base$extmort4 > quantile(base$extmort4, 0.25) &
+                    base$extmort4 <= quantile(base$extmort4, 0.5), 1, 0)
+base$q3 <- ifelse(base$extmort4 > quantile(base$extmort4, 0.5) &
+                    base$extmort4 <= quantile(base$extmort4, 0.75), 1, 0)
+base$q4 <- ifelse(base$extmort4 > quantile(base$extmort4, 0.75), 1, 0)
+
+base.q1 <- c(round(c(
+                mean(base$logpgp95[base$q1 == 1], na.rm = TRUE),
+                mean(base$loghjypl[base$q1 == 1], na.rm = TRUE), 
+                mean(base$avexpr[base$q1 == 1], na.rm = TRUE), 
+                mean(base$cons1[base$q1 == 1], na.rm = TRUE), 
+                mean(base$cons00a[base$q1 == 1], na.rm = TRUE), 
+                mean(base$democ00a[base$q1 == 1], na.rm = TRUE),
+                mean(base$euro1900[base$q1 == 1], na.rm = TRUE)/100,
+                mean(base$logem4[base$q1 == 1], na.rm = TRUE), 
+                sum(base$q1)),
+                digits = 1)
+             
+)
+base.q2 <- c(round(c(
+                mean(base$logpgp95[base$q2 == 1], na.rm = TRUE),
+                mean(base$loghjypl[base$q2 == 1], na.rm = TRUE), 
+                mean(base$avexpr[base$q2 == 1], na.rm = TRUE), 
+                mean(base$cons1[base$q2 == 1], na.rm = TRUE), 
+                mean(base$cons00a[base$q2 == 1], na.rm = TRUE), 
+                mean(base$democ00a[base$q2 == 1], na.rm = TRUE),
+                mean(base$euro1900[base$q2 == 1], na.rm = TRUE)/100,
+                mean(base$logem4[base$q2 == 1], na.rm = TRUE), 
+                sum(base$q2)),
+                    digits = 1)
+)
+base.q3 <- c(round(c(
+                mean(base$logpgp95[base$q3 == 1], na.rm = TRUE),
+                mean(base$loghjypl[base$q3 == 1], na.rm = TRUE), 
+                mean(base$avexpr[base$q3 == 1], na.rm = TRUE), 
+                mean(base$cons1[base$q3 == 1], na.rm = TRUE), 
+                mean(base$cons00a[base$q3 == 1], na.rm = TRUE), 
+                mean(base$democ00a[base$q3 == 1], na.rm = TRUE),
+                mean(base$euro1900[base$q3 == 1], na.rm = TRUE)/100,
+                mean(base$logem4[base$q3 == 1], na.rm = TRUE), 
+                sum(base$q3)), 
+                digits = 1)
+)
+base.q4 <- c(round(c(
+                mean(base$logpgp95[base$q4 == 1], na.rm = TRUE),
+                mean(base$loghjypl[base$q4 == 1], na.rm = TRUE), 
+                mean(base$avexpr[base$q4 == 1], na.rm = TRUE), 
+                mean(base$cons1[base$q4 == 1], na.rm = TRUE), 
+                mean(base$cons00a[base$q4 == 1], na.rm = TRUE), 
+                mean(base$democ00a[base$q4 == 1], na.rm = TRUE),
+                mean(base$euro1900[base$q4 == 1], na.rm = TRUE)/100,
+                mean(base$logem4[base$q4 == 1], na.rm = TRUE), 
+                sum(base$q3)),
+                digits = 1)
+)
+
+tbl1.1 <- data.frame(variable = tbl1.varnames, 
+                     world.means = world.means, 
+                     world.sd = world.sd,
+                     base.means = base.means, 
+                     base.sd = base.sd
+                       )
+tbl1.2 <- data.frame(variable3 = tbl1.varnames,
+                     q1 = base.q1,
+                     q2 = base.q2,
+                     q3 = base.q3,
+                     q4 = base.q4)
+
+names(tbl1.1) <- c(" ", "Whole world (mean)", "(sd)",
+                   "Base sample (mean)", "(sd)")
+names(tbl1.2) <- c(" ", "1", "2", "3", "4")
+
+set.caption("Descriptive Statistics")
+pander(tbl1.1, digits = 2, split.table = Inf)
+
+set.caption("Variable Means by Quartiles of Settler Mortality")
+pander(tbl1.2)
+```
+
+### Table 2 - OLS Regressions
+
+
+```{r results = 'asis'}
+tbl2 <- read.dta("maketable2.dta")
+base2 <- filter(tbl2, baseco == 1)
+
+lm2.1 <- lm(logpgp95 ~ avexpr, data = tbl2)
+lm2.2 <- lm(logpgp95 ~ avexpr, data = base2)
+lm2.3 <- lm(logpgp95 ~ avexpr + lat_abst, data = tbl2)
+lm2.4 <- lm(logpgp95 ~ avexpr + lat_abst + asia + africa + other, data = tbl2)
+lm2.5 <- lm(logpgp95 ~ avexpr + lat_abst, data = base2)
+lm2.6 <- lm(logpgp95 ~ avexpr + lat_abst + asia + africa + other, data = base2)
+lm2.7 <- lm(loghjypl ~ avexpr, data = tbl2)
+lm2.8 <- lm(loghjypl ~ avexpr, data = base2)
+
+stargazer(lm2.1, lm2.2, lm2.3, lm2.4, lm2.5, lm2.6, lm2.7, lm2.8,
+         header = FALSE,
+         omit.stat = c("f", "adj.rsq", "ser"),
+         star.cutoffs = 0,
+         covariate.labels = c("Avg. Expropriation Risk",
+                              "Latitude",
+                              "Asia dummy",
+                              "Africa dummy",
+                              "`Other' continent dummy"),
+         keep = c("avexpr", "lat_abst", "asia", "africa", "other"),
+         dep.var.caption = "Dependent variable",
+         model.names = FALSE, 
+         column.labels = c("World", "Base", "World", "World", "Base", "Base", 
+                           "World", "Base"),
+         title = "OLS Regressions",
+         dep.var.labels.include = TRUE,
+         dep.var.labels = c("Log GDP per capita, 1995", 
+                            "Log output per worker, 1988"),
+         notes = c("The dependent variable for models (1) through (6) is log GDP per capita, 1995, and for", "models (7) and (8) it is log output per worker, 1988."),
+         notes.align = "l",
+         notes.append = FALSE,
+         font.size = "scriptsize", 
+         digits = 2
+         )
+
+```
+
+### Table 3 - Determinants of Institutions
+
+```{r results = 'asis'}
+tbl3 <- read.dta("maketable3.dta") %>%
+  filter(excolony == 1,
+         extmort4 >= 0) %>%
+  mutate(
+    euro1900 = euro1900 / 100
+  )
+
+lm3.1 <- lm(avexpr ~ cons00a, data = tbl3)
+lm3.2 <- lm(avexpr ~ cons00a + lat_abst, data = tbl3)
+lm3.3 <- lm(avexpr ~ democ00a, data = tbl3)
+lm3.4 <- lm(avexpr ~ democ00a + lat_abst, data = tbl3)
+lm3.5 <- lm(avexpr ~ cons1 + indtime, data = tbl3)
+lm3.6 <- lm(avexpr ~ cons1 + lat_abst + indtime, data = tbl3)
+lm3.7 <- lm(avexpr ~ euro1900, data = tbl3)
+lm3.8 <- lm(avexpr ~ euro1900 + lat_abst, data = tbl3)
+lm3.9 <- lm(avexpr ~ logem4, data = tbl3)
+lm3.10 <- lm(avexpr ~ logem4 + lat_abst, data = tbl3)
+
+
+stargazer(lm3.1, lm3.2, lm3.3, lm3.4, lm3.5, lm3.6, lm3.7, lm3.8, lm3.9, lm3.10,
+          header = FALSE,
+         title = "Panel A",
+         font.size = "scriptsize",
+                  omit.stat = c("f", "adj.rsq", "ser"),
+         star.cutoffs = 0,
+         dep.var.caption = "Dependent variable: Average protection against expropriation, 1985-1995",
+         order = c("cons00a", "democ00a", "cons1", "euro1900", 
+                   "logem4", "lat_abst"),
+         model.names = FALSE, 
+         dep.var.labels.include = FALSE,
+         notes = c("Models including constraint on executive in first year since independence","also control for years since independence."),
+         notes.append = FALSE, 
+         keep = c("cons00a", "lat_abst", "democ00a", "cons1", "euro1900",
+                  "logem4"),
+         digits = 2,
+         notes.align = "l"
+)
+
+## PANEL B
+lm3b1 <- lm(cons00a ~ euro1900, data = tbl3)
+lm3b2 <- lm(cons00a ~ euro1900 + lat_abst, data = tbl3)
+lm3b3 <- lm(cons00a ~ logem4, data = tbl3)
+lm3b4 <- lm(cons00a ~ logem4 + lat_abst, data = tbl3)
+lm3b5 <- lm(democ00a ~ euro1900, data = tbl3)
+lm3b6 <- lm(democ00a ~ euro1900 + lat_abst, data = tbl3)
+lm3b7 <- lm(democ00a ~ logem4, data = tbl3)
+lm3b8 <- lm(democ00a ~ logem4 + lat_abst, data = tbl3)
+lm3b9 <- lm(euro1900 ~ logem4, data = tbl3)
+lm3b10 <- lm(euro1900 ~ logem4 + lat_abst, data = tbl3)
+
+stargazer(lm3b1, lm3b2, lm3b3, lm3b4, lm3b5, lm3b6, lm3b7, lm3b8, lm3b9, lm3b10,
+          header = FALSE,
+         title = "Panel B",
+         font.size = "scriptsize",
+         omit.stat = c("f", "adj.rsq", "ser"),
+         keep = c("euro1900", "lat_abst", "logem4"),
+         order = c("euro1900", "logem4", "lat_abst"),
+         star.cutoffs = 0,
+         dep.var.caption = "Dependent Variable",
+         dep.var.labels = c("Constraint on Executive, 1900",
+                            "Democracy, 1900",
+                            "Euro. Settlements, 1900"),
+         model.names = FALSE, 
+         dep.var.labels.include = TRUE,
+         notes = " ",
+         notes.append = FALSE, 
+         digits = 2
+)
+```
+
+
+### Table 4 - IV Regressions of Log GDP Per Capita
+
+
+```{r results = 'asis', message=FALSE, warning=FALSE}
+tbl4 <- read.dta("maketable4.dta") %>%
+  filter(baseco == 1) %>%
+  mutate(
+    other_cont = ifelse(shortnam %in% c("AUS", "MLT", "NLZ"), 1, 0)
+  )
+
+
+## PANEL A
+m4a1 <- ivreg(logpgp95 ~ avexpr | logem4, data = tbl4)
+m4a2 <- ivreg(logpgp95 ~ avexpr + lat_abst | logem4 + lat_abst, data = tbl4)
+m4a3 <- ivreg(logpgp95 ~ avexpr | logem4, 
+              data = filter(tbl4, rich4 != 1))
+m4a4 <- ivreg(logpgp95 ~ avexpr + lat_abst | logem4 + lat_abst, 
+              data = filter(tbl4, rich4 != 1))
+m4a5 <- ivreg(logpgp95 ~ avexpr | logem4, 
+              data = filter(tbl4, africa != 1))
+m4a6 <- ivreg(logpgp95 ~ avexpr + lat_abst | logem4 + lat_abst, 
+              data = filter(tbl4, africa != 1))
+m4a7 <- ivreg(logpgp95 ~ avexpr + africa + asia + other_cont | 
+                logem4 + africa + asia + other_cont, 
+              data = tbl4)
+m4a8 <- ivreg(logpgp95 ~ avexpr + africa + asia + other_cont + lat_abst | 
+                logem4 + africa + asia + lat_abst + other_cont, 
+              data = tbl4)
+m4a9 <- ivreg(loghjypl ~ avexpr | logem4, data = tbl4)
+
+stargazer(m4a1, m4a2, m4a3, m4a4, m4a5, m4a6, m4a7, m4a8, m4a9,
+          header = FALSE, 
+          keep = c("avexpr", "lat_abst", "asia", "africa", "other_cont"),
+         title = "Panel A: Two-Stage Least Squares",
+         font.size = "scriptsize",
+         omit.stat = c("f", "adj.rsq", "ser", "rsq", "n"),
+         star.cutoffs = 0,
+         dep.var.caption = "Dependent Variable",
+         dep.var.labels = c("Log GDP Per Capita", "Log Output Per Worker"),
+         model.names = FALSE,
+         dep.var.labels.include = TRUE,
+         notes = c("Panel A reports the two-stage least-squares estimates, instrumenting for protection against", "expropriation risk using log settler mortality.", "All models use the Base Sample except columns (3)/(4), which exclude Neo-Europes and","columns (5)/(6) which exclude African countries."),
+         notes.align = "l",
+         notes.append = FALSE,
+         digits = 2)
+
+## PANEL B
+m4b1 <- lm(avexpr ~ logem4, data = tbl4)
+m4b2 <- lm(avexpr ~ logem4 + lat_abst, data = tbl4)
+m4b3 <- lm(avexpr ~ logem4, data = filter(tbl4, rich4 != 1))
+m4b4 <- lm(avexpr ~ logem4 + lat_abst, data = filter(tbl4, rich4 != 1))
+m4b5 <- lm(avexpr ~ logem4, data = filter(tbl4, africa != 1))
+m4b6 <- lm(avexpr ~ logem4 + lat_abst, data = filter(tbl4, africa != 1))
+m4b7 <- lm(avexpr ~ logem4 + asia + africa + other_cont, data = tbl4)
+m4b8 <- lm(avexpr ~ logem4 + asia + africa + other_cont + lat_abst, data = tbl4)
+m4b9 <- lm(avexpr ~ logem4, data = tbl4) #not sure what DV is here
+
+
+stargazer(m4b1, m4b2, m4b3, m4b4, m4b5, m4b6, m4b7, m4b8, m4b9,
+          header = FALSE, 
+          keep = c("logem4", "lat_abst", "asia", "africa", "other_cont"),
+         title = "Panel B: First Stage for Average Protection Against Expropriation Risk, 1985-1995",
+         font.size = "scriptsize",
+         omit.stat = c("f", "adj.rsq", "ser", "n"),
+         star.cutoffs = 0,
+         dep.var.caption = "Dependent Variable",
+         dep.var.labels = c("Log GDP Per Capita", "Log Output Per Worker"),
+         model.names = FALSE,
+#         column.labels = c("Base", "Base", "Without Neo-Europes",
+#                           "Without Neo-Europes", "Without Africa",
+#                           "Without Africa", "Base", "Base", "Base"),
+         dep.var.labels.include = TRUE,
+         notes = c("All models use the Base Sample except columns (3)/(4), which exclude Neo-Europes and","columns (5)/(6) which exclude African countries."),
+         notes.align = "l"
+,         notes.append = FALSE,
+         digits = 2)
+
+## PANEL C
+m4c1 <- lm(logpgp95 ~ avexpr, data = tbl4)
+m4c2 <- lm(logpgp95 ~ avexpr + lat_abst, data = tbl4)
+m4c3 <- lm(logpgp95 ~ avexpr, data = filter(tbl4, rich4 != 1))
+m4c4 <- lm(logpgp95 ~ avexpr + lat_abst, data = filter(tbl4, rich4 != 1))
+m4c5 <- lm(logpgp95 ~ avexpr, data = filter(tbl4, africa != 1))
+m4c6 <- lm(logpgp95 ~ avexpr + lat_abst, data = filter(tbl4, africa != 1))
+m4c7 <- lm(logpgp95 ~ avexpr + asia + africa + other_cont, data = tbl4)
+m4c8 <- lm(logpgp95 ~ avexpr + asia + africa + other_cont + lat_abst, data = tbl4)
+m4c9 <- lm(loghjypl ~ avexpr, data = tbl4)
+
+stargazer(m4c1, m4c2, m4c3, m4c4, m4c5, m4c6, m4c7, m4c8, m4c9,
+          header = FALSE, 
+          keep = "avexpr",
+         title = "Panel C: Ordinary Least Squares",
+         font.size = "scriptsize",
+         omit.stat = c("f", "adj.rsq", "ser", "rsq"),
+         star.cutoffs = 0,
+         dep.var.caption = "Dependent Variable",
+         dep.var.labels = c("Log GDP Per Capita", "Log Output Per Worker"),
+         model.names = FALSE,
+#         column.labels = c("Base", "Base", "Without Neo-Europes",
+#                           "Without Neo-Europes", "Without Africa",
+#                           "Without Africa", "Base", "Base", "Base"),
+         dep.var.labels.include = TRUE,
+         notes = c("Panel C reports the OLS coefficient from regressing log GDP per capita on average protection against", "expropriation risk, with other control variables indicated in that column (full results not reported to", "save space).",
+                   "All models use the Base Sample except columns (3)/(4), which exclude Neo-Europes and","columns (5)/(6) which exclude African countries."),
+         notes.align = "l"
+,         notes.append = FALSE,
+         digits = 2)
+```
+
+
+### Table 5 - IV Regressions of Log GDP Per Capita with Additional Controls
+
+
+```{r results = 'asis'}
+tbl5 <- read.dta("maketable5.dta")
+base5 <- tbl5 %>% filter(baseco == 1)
+
+# PANEL A
+m5a1 <- ivreg(logpgp95 ~ avexpr + f_brit + f_french | logem4 + f_brit + f_french, 
+           data = base5)
+m5a2 <- ivreg(logpgp95 ~ avexpr + f_brit + f_french + lat_abst | 
+                logem4 + f_brit + f_french + lat_abst, 
+           data = base5)
+m5a3 <- ivreg(logpgp95 ~ avexpr | logem4, 
+           data = base5[base5$f_brit == 1, ])
+m5a4 <- ivreg(logpgp95 ~ avexpr + lat_abst | logem4 + lat_abst, 
+           data = base5[base5$f_brit == 1, ])
+m5a5 <- ivreg(logpgp95 ~ avexpr + sjlofr | logem4 + sjlofr, 
+           data = base5)
+m5a6 <- ivreg(logpgp95 ~ avexpr + sjlofr + lat_abst | logem4 + sjlofr + lat_abst, 
+           data = base5)
+m5a7 <- ivreg(logpgp95 ~ avexpr + catho80 + muslim80 + no_cpm80 | 
+                logem4 + catho80 + muslim80 + no_cpm80, 
+           data = base5)
+m5a8 <- ivreg(logpgp95 ~ avexpr + catho80 + muslim80 + no_cpm80 + lat_abst | 
+                logem4 + catho80 + muslim80 + no_cpm80 + lat_abst, 
+           data = base5)
+m5a9 <- ivreg(logpgp95 ~ avexpr + f_french + lat_abst + sjlofr + catho80 + 
+             muslim80 + no_cpm80 | 
+               logem4 + f_french + lat_abst + sjlofr + 
+               catho80 +  muslim80 + no_cpm80, 
+           data = base5)
+
+# Religion F-tests
+options(scipen = 999)
+
+m7res <- ivreg(logpgp95 ~ avexpr | logem4, data = base5)
+m7_pval <- waldtest(m5a7, m7res)[2, 4]
+m8res <- ivreg(logpgp95 ~ avexpr + lat_abst | logem4 + lat_abst, data = base5)
+m8_pval <- waldtest(m5a8, m8res)[2, 4]
+m9res <- ivreg(logpgp95 ~ avexpr + f_french + lat_abst + sjlofr| 
+               logem4 + f_french + lat_abst + sjlofr, 
+           data = base5)
+m9_pval <- waldtest(m5a9, m9res)[2, 4]
+
+
+
+stargazer(m5a1, m5a2, m5a3, m5a4, m5a5, m5a6, m5a7, m5a8, m5a9,
+          header = FALSE, 
+          keep = c("avexpr", "lat_abst", "f_brit", "f_french", 
+                   "sjlofr"),
+         title = "Panel A: Two-Stage Least Squares",
+         font.size = "scriptsize",
+         omit.stat = c("f", "adj.rsq", "ser", "rsq", "n"),
+         star.cutoffs = 0,
+         dep.var.caption = "Dependent Variable: Log GDP per capita, 1995",
+#         dep.var.labels = c(" "),
+         model.names = FALSE,
+         column.labels = c("Base", "Base", "British colonies", "British colonies",
+                           "Base", "Base", "Base", "Base", "Base"),
+         dep.var.labels.include = FALSE,
+         notes = c("Panel A reports the two-stage least squares estimates with log GDP per capita (PPP basis)", "in 1995 as dependent variable.",
+                   "The row for religion variables reports the p-values for joint significance. The religion", "variables are percentage of population that are Catholics, Muslims, and `other' religions;", "Protestant is the base case."),
+         notes.align = "l"
+,         notes.append = FALSE,
+         digits = 2,
+         add.lines = list(c("Religion variables", "-", "-", "-", "-", 
+                       "-", "-", format(round(m7_pval, digits = 3), nsmall = 3), 
+                      format(round(m8_pval, digits = 3), nsmall = 3), 
+                       format(round(m9_pval, digits = 3), nsmall = 3)))
+)
+
+## PANEL B
+m5b1 <- lm(avexpr ~ logem4 + f_brit + f_french, 
+           data = base5)
+m5b2 <- lm(avexpr ~ logem4 + f_brit + f_french + lat_abst, 
+           data = base5)
+m5b3 <- lm(avexpr ~ logem4, 
+           data = base5[base5$f_brit == 1, ])
+m5b4 <- lm(avexpr ~ logem4 + lat_abst, 
+           data = base5[base5$f_brit == 1, ])
+m5b5 <- lm(avexpr ~ logem4 + sjlofr, 
+           data = base5)
+m5b6 <- lm(avexpr ~ logem4 + sjlofr + lat_abst, 
+           data = base5)
+m5b7 <- lm(avexpr ~ logem4 + catho80 + muslim80 + no_cpm80, 
+           data = base5)
+m5b8 <- lm(avexpr ~ logem4 + catho80 + muslim80 + no_cpm80 + lat_abst, 
+           data = base5)
+m5b9 <- lm(avexpr ~ logem4 + f_french + lat_abst + sjlofr + catho80 + 
+             muslim80 + no_cpm80, 
+           data = base5)
+
+stargazer(m5b1, m5b2, m5b3, m5b4, m5b5, m5b6, m5b7, m5b8, m5b9,
+          header = FALSE, 
+          keep = c("logem4", "lat_abst", "f_brit", "f_french", "sjlofr"),
+         title = "Panel B: First Stage for Average Protection Against Expropriation Risk in 1985-1995",
+         font.size = "scriptsize",
+         omit.stat = c("f", "adj.rsq", "ser", "n"),
+         star.cutoffs = 0,
+         dep.var.caption = " ",
+#         dep.var.labels = c(" "),
+         model.names = FALSE,
+         column.labels = c("Base", "Base", "British colonies", "British colonies",
+                           "Base", "Base", "Base", "Base", "Base"),
+         dep.var.labels.include = FALSE,
+         notes = c("The religion variables are included in the first stage of columns (7) and (8) but not", "reported here (to save space)."),
+         notes.align = "l"
+,         notes.append = FALSE,
+         digits = 2)
+
+#PANEL C
+m5c1 <- lm(logpgp95 ~ avexpr + f_brit + f_french, 
+           data = base5)
+m5c2 <- lm(logpgp95 ~ avexpr + f_brit + f_french + lat_abst, 
+           data = base5)
+m5c3 <- lm(logpgp95 ~ avexpr, 
+           data = base5[base5$f_brit == 1, ])
+m5c4 <- lm(logpgp95 ~ avexpr + lat_abst, 
+           data = base5[base5$f_brit == 1, ])
+m5c5 <- lm(logpgp95 ~ avexpr + sjlofr, 
+           data = base5)
+m5c6 <- lm(logpgp95 ~ avexpr + sjlofr + lat_abst, 
+           data = base5)
+m5c7 <- lm(logpgp95 ~ avexpr + catho80 + muslim80 + no_cpm80, 
+           data = base5)
+m5c8 <- lm(logpgp95 ~ avexpr + catho80 + muslim80 + no_cpm80 + lat_abst, 
+           data = base5)
+m5c9 <- lm(logpgp95 ~ avexpr + f_french + lat_abst + sjlofr + catho80 + 
+             muslim80 + no_cpm80, 
+           data = base5)
+
+stargazer(m5c1, m5c2, m5c3, m5c4, m5c5, m5c6, m5c7, m5c8, m5c9,
+          header = FALSE, 
+          keep = "avexpr",
+         title = "Panel C: Ordinary Least Squares",
+         font.size = "scriptsize",
+         omit.stat = c("f", "adj.rsq", "ser", "rsq"),
+         star.cutoffs = 0,
+         dep.var.caption = "Dependent Variable: Log GDP per capita, 1995",
+#         dep.var.labels = c(" "),
+         model.names = FALSE,
+         column.labels = c("Base", "Base", "British colonies", "British colonies",
+                           "Base", "Base", "Base", "Base", "Base"),
+         dep.var.labels.include = FALSE,
+         notes = c("Panel C reports the OLS coefficient from regressing log GDP per capita on average protection against", "expropriation risk, with other control variables indicated in that column (full results not reported to", "save space)."),
+         notes.align = "l"
+,         notes.append = FALSE,
+         digits = 2)
+```
+
+### Table 6 - Robustness Checks for IV Regressions of Log GDP per Capita
+
+
+```{r results = 'asis'}
+tbl6 <- read.dta("maketable6.dta") %>%
+  filter(baseco == 1)
+
+## PANEL A
+m6a1 <- ivreg(logpgp95 ~ avexpr + temp1 + temp2 + temp3 + temp4 + temp5 +
+             humid1 + humid2 + humid3 + humid4 | 
+               logem4 + temp1 + temp2 + temp3 + temp4 + temp5 +
+             humid1 + humid2 + humid3 + humid4, 
+           data = tbl6)
+m6a2 <- ivreg(logpgp95 ~ avexpr + temp1 + temp2 + temp3 + temp4 + temp5 +
+             humid1 + humid2 + humid3 + humid4 + lat_abst | 
+               logem4 + temp1 + temp2 + temp3 + temp4 + temp5 +
+             humid1 + humid2 + humid3 + humid4 + lat_abst, 
+           data = tbl6)
+m6a3 <- ivreg(logpgp95 ~ avexpr + edes1975 | logem4 + edes1975, 
+           data = tbl6)
+m6a4 <- ivreg(logpgp95 ~ avexpr + edes1975 + lat_abst | 
+                logem4 + edes1975 + lat_abst, 
+           data = tbl6)
+m6a5 <- ivreg(logpgp95 ~ avexpr + steplow + deslow + stepmid + desmid +
+              drystep + drywint + goldm + iron + silv + zinc + oilres + landlock |
+                logem4 + steplow + deslow + stepmid + desmid +
+              drystep + drywint + goldm + iron + silv + zinc + oilres + landlock, 
+           data = tbl6)
+m6a6 <- ivreg(logpgp95 ~ avexpr + steplow + deslow + stepmid + desmid +
+              drystep + drywint + goldm + iron + silv + zinc + oilres + 
+                landlock  + lat_abst |
+                logem4 + steplow + deslow + stepmid + desmid +
+              drystep + drywint + goldm + iron + silv + zinc + oilres + 
+                landlock + lat_abst, 
+           data = tbl6)
+m6a7 <- ivreg(logpgp95 ~ avexpr + avelf | logem4 + avelf, 
+           data = tbl6)
+m6a8 <- ivreg(logpgp95 ~ avexpr + avelf + lat_abst | logem4 + avelf + lat_abst, 
+           data = tbl6)
+m6a9 <- ivreg(logpgp95 ~ avexpr + steplow + deslow + stepmid + desmid +
+              drystep + drywint + goldm + iron + silv + zinc + oilres + landlock +
+             lat_abst + temp1 + temp2 + temp3 + temp4 + temp5 +
+             humid1 + humid2 + humid3 + humid4 + edes1975 + avelf |
+               logem4 + steplow + deslow + stepmid + desmid +
+              drystep + drywint + goldm + iron + silv + zinc + oilres + landlock +
+             lat_abst + temp1 + temp2 + temp3 + temp4 + temp5 +
+             humid1 + humid2 + humid3 + humid4 + edes1975 + avelf , 
+           data = tbl6)
+
+# F-tests
+m6_1temp_res <- ivreg(logpgp95 ~ avexpr +
+             humid1 + humid2 + humid3 + humid4 | 
+               logem4 + 
+             humid1 + humid2 + humid3 + humid4, 
+           data = tbl6)
+m6_1temp_pval <- waldtest(m6a1, m6_1temp_res)[2, 4]
+
+m6_1hum_res <- ivreg(logpgp95 ~ avexpr + temp1 + temp2 + temp3 + temp4 + temp5 | 
+               logem4 + temp1 + temp2 + temp3 + temp4 + temp5, 
+           data = tbl6)
+m6_1hum_pval <- waldtest(m6a1, m6_1hum_res)[2, 4]
+
+#-------
+m6_2temp_res <- ivreg(logpgp95 ~ avexpr + 
+             humid1 + humid2 + humid3 + humid4 + lat_abst | 
+               logem4 + 
+             humid1 + humid2 + humid3 + humid4 + lat_abst, 
+           data = tbl6)
+m6_2temp_pval <- waldtest(m6a2, m6_2temp_res)[2, 4]
+
+m6_2hum_res <- ivreg(logpgp95 ~ avexpr + temp1 + temp2 + temp3 + temp4 + temp5 +
+              lat_abst | 
+               logem4 + temp1 + temp2 + temp3 + temp4 + temp5 +
+             lat_abst, 
+           data = tbl6)
+m6_2hum_pval <- waldtest(m6a2, m6_2hum_res)[2, 4]
+#------
+m6_5soil_res <- ivreg(logpgp95 ~ avexpr + goldm + iron + silv + zinc + 
+                        oilres + landlock |
+                logem4 + goldm + iron + silv + zinc + oilres + landlock, 
+           data = tbl6)
+m6_5soil_pval <- waldtest(m6a5, m6_5soil_res)[2, 4]
+
+m6_5nat_res <- ivreg(logpgp95 ~ avexpr + steplow + deslow + stepmid + desmid +
+              drystep + drywint + landlock |
+                logem4 + steplow + deslow + stepmid + desmid +
+              drystep + drywint + landlock, 
+           data = tbl6)
+m6_5nat_pval <- waldtest(m6a5, m6_5nat_res)[2, 4]
+#-------
+m6_6soil_res <- ivreg(logpgp95 ~ avexpr + steplow + deslow + stepmid + desmid +
+              drystep + drywint + 
+                landlock  + lat_abst |
+                logem4 + steplow + deslow + stepmid + desmid +
+              drystep + drywint + 
+                landlock + lat_abst, 
+           data = tbl6)
+m6_6soil_pval <- waldtest(m6a6, m6_6soil_res)[2, 4]
+
+m6_6nat_res <- ivreg(logpgp95 ~ avexpr + steplow + deslow + stepmid + desmid +
+              drystep + drywint + 
+                landlock  + lat_abst |
+                logem4 + steplow + deslow + stepmid + desmid +
+              drystep + drywint + 
+                landlock + lat_abst, 
+           data = tbl6)
+m6_6nat_pval <- waldtest(m6a6, m6_6nat_res)[2, 4]
+#------
+m6_9temp_res <- ivreg(logpgp95 ~ avexpr + steplow + deslow + stepmid + desmid +
+              drystep + drywint + goldm + iron + silv + zinc + oilres + landlock +
+             lat_abst + 
+             humid1 + humid2 + humid3 + humid4 + edes1975 + avelf |
+               logem4 + steplow + deslow + stepmid + desmid +
+              drystep + drywint + goldm + iron + silv + zinc + oilres + landlock +
+             lat_abst + 
+             humid1 + humid2 + humid3 + humid4 + edes1975 + avelf , 
+           data = tbl6)
+m6_9temp_pval <- waldtest(m6a9, m6_9temp_res)[2, 4]
+
+m6_9hum_res <- ivreg(logpgp95 ~ avexpr + steplow + deslow + stepmid + desmid +
+              drystep + drywint + goldm + iron + silv + zinc + oilres + landlock +
+             lat_abst + temp1 + temp2 + temp3 + temp4 + temp5 +
+              edes1975 + avelf |
+               logem4 + steplow + deslow + stepmid + desmid +
+              drystep + drywint + goldm + iron + silv + zinc + oilres + landlock +
+             lat_abst + temp1 + temp2 + temp3 + temp4 + temp5 +
+              edes1975 + avelf , 
+           data = tbl6)
+m6_9hum_pval <- waldtest(m6a9, m6_9hum_res)[2, 4]
+
+m6_9soil_res <- ivreg(logpgp95 ~ avexpr + 
+                        goldm + iron + silv + zinc + oilres + landlock +
+             lat_abst + temp1 + temp2 + temp3 + temp4 + temp5 +
+             humid1 + humid2 + humid3 + humid4 + edes1975 + avelf |
+               logem4 + goldm + iron + silv + zinc + oilres + landlock +
+             lat_abst + temp1 + temp2 + temp3 + temp4 + temp5 +
+             humid1 + humid2 + humid3 + humid4 + edes1975 + avelf , 
+           data = tbl6)
+m6_9soil_pval <- waldtest(m6a9, m6_9soil_res)[2, 4]
+
+m6_9nat_res <- ivreg(logpgp95 ~ avexpr + steplow + deslow + stepmid + desmid +
+              drystep + drywint + landlock +
+             lat_abst + temp1 + temp2 + temp3 + temp4 + temp5 +
+             humid1 + humid2 + humid3 + humid4 + edes1975 + avelf |
+               logem4 + steplow + deslow + stepmid + desmid +
+              drystep + drywint + landlock +
+             lat_abst + temp1 + temp2 + temp3 + temp4 + temp5 +
+             humid1 + humid2 + humid3 + humid4 + edes1975 + avelf , 
+           data = tbl6)
+m6_9nat_pval <- waldtest(m6a9, m6_9nat_res)[2, 4]
+#------
+stargazer(m6a1, m6a2, m6a3, m6a4, m6a5, m6a6, m6a7, m6a8, m6a9,
+          header = FALSE, 
+          keep = c("avexpr", "lat_abst", "edes1975", "avelf", "landlock"),
+         title = "Panel A: Two-Stage Least Squares",
+         font.size = "scriptsize",
+         omit.stat = c("f", "adj.rsq", "ser", "rsq", "n"),
+         star.cutoffs = 0,
+         dep.var.caption = "Dependent Variable: Log GDP per capita, 1995",
+#         dep.var.labels = c(" "),
+         model.names = FALSE,
+         column.labels = c("Base", "Base", "Base", "Base",
+                           "Base", "Base", "Base", "Base", "Base"),
+         dep.var.labels.include = FALSE,
+         notes = c("Panel A reports the two-stage least-squares estimates with log GDP per capita (PPP basis) in 1995.", "All regressions have 64 observations, except those including natural resources,", "which have 63 observations.", 
+                   "The rows for additional control variables report the p-values for joint significance.",
+                   "The temperature and humidity variables are: average, minimum and", "maximum monthly high temperatures, and minimum and maximum monthly low temperatures", "and morning mnimum and maximum humidity, and afternoon minimum and maximum humidity", "Measures of natural resources are: percent of gold reserves today, percent of world iron",
+"reserves today, percent of world zinc reserves today, number of minerals present in country, and", "oil resources (thousands of barrels per capita). Measures of soil quality/climate are steppe (low", "latitude), desert (middle latitude), dry steppe wasteland, desert dry winter, and highland."),
+         notes.align = "l"
+,         notes.append = FALSE,
+         digits = 2,
+         add.lines = list(c("Temperature", 
+                            format(round(m6_1temp_pval, 2), nsmall = 2),
+                            format(round(m6_2temp_pval, 2), nsmall = 2),
+                            "-", "-", "-", "-", 
+                            "-", "-", 
+                            format(round(m6_9temp_pval, 2), nsmall = 2)),
+                          c("Humidity", 
+                            format(round(m6_1hum_pval, 2), nsmall = 2),
+                            format(round(m6_2hum_pval, 2), nsmall = 2),
+                            "-", "-", "-", "-", 
+                            "-", "-", 
+                            format(round(m6_9hum_pval, 2), nsmall = 2)),
+                          c("Soil quality", "-", "-", "-", "-", 
+                            format(round(m6_5soil_pval, 2), nsmall = 2),
+                            format(round(m6_6soil_pval, 2), nsmall = 2),
+                            "-", "-", 
+                            format(round(m6_9soil_pval, 2), nsmall = 2)),
+                          c("Natural Resources", "-", "-", "-", "-", 
+                            format(round(m6_5nat_pval, 2), nsmall = 2),
+                            format(round(m6_6nat_pval, 2), nsmall = 2),
+                            "-", "-", 
+                            format(round(m6_9nat_pval, 2), nsmall = 2)))
+)
+
+## PANEL B
+m6b1 <- lm(avexpr ~ logem4 + temp1 + temp2 + temp3 + temp4 + temp5 +
+             humid1 + humid2 + humid3 + humid4, 
+           data = tbl6)
+m6b2 <- lm(avexpr ~ logem4 + temp1 + temp2 + temp3 + temp4 + temp5 +
+             humid1 + humid2 + humid3 + humid4 + lat_abst, 
+           data = tbl6)  
+m6b3 <- lm(avexpr ~ logem4 + edes1975, 
+           data = tbl6)
+m6b4 <- lm(avexpr ~ logem4 + edes1975 + lat_abst, 
+           data = tbl6)
+m6b5 <- lm(avexpr ~ logem4 + steplow + deslow + stepmid + desmid +
+              drystep + drywint + goldm + iron + silv + zinc + oilres + landlock, 
+           data = tbl6)
+m6b6 <- lm(avexpr ~ logem4 + steplow + deslow + stepmid + desmid +
+              drystep + drywint + goldm + iron + silv + zinc + oilres + landlock +
+             lat_abst, 
+           data = tbl6)
+m6b7 <- lm(avexpr ~ logem4 + avelf, 
+           data = tbl6)
+m6b8 <- lm(avexpr ~ logem4 + avelf + lat_abst, 
+           data = tbl6)
+m6b9 <- lm(avexpr ~ logem4 + steplow + deslow + stepmid + desmid +
+              drystep + drywint + goldm + iron + silv + zinc + oilres + landlock +
+             lat_abst + temp1 + temp2 + temp3 + temp4 + temp5 +
+             humid1 + humid2 + humid3 + humid4 + edes1975 + avelf, 
+           data = tbl6)
+
+stargazer(m6b1, m6b2, m6b3, m6b4, m6b5, m6b6, m6b7, m6b8, m6b9,
+          header = FALSE, 
+          keep = c("logem4", "lat_abst"),
+         title = "Panel B: First Stage for Average Protection Against Expropriation Risk in 1985-1995",
+         font.size = "scriptsize",
+         omit.stat = c("f", "adj.rsq", "ser", "n"),
+         star.cutoffs = 0,
+         dep.var.caption = " ",
+#         dep.var.labels = c(" "),
+         model.names = FALSE,
+         column.labels = c("Base", "Base", "Base", "Base",
+                           "Base", "Base", "Base", "Base", "Base"),
+         dep.var.labels.include = FALSE,
+         notes = c("All models include control variables described in Panel A"),
+         notes.align = "l"
+,         notes.append = FALSE,
+         digits = 2
+)
+
+## PANEL C
+m6c1 <- lm(logpgp95 ~ avexpr + temp1 + temp2 + temp3 + temp4 + temp5 +
+             humid1 + humid2 + humid3 + humid4, 
+           data = tbl6)
+m6c2 <- lm(logpgp95 ~ avexpr + temp1 + temp2 + temp3 + temp4 + temp5 +
+             humid1 + humid2 + humid3 + humid4 + lat_abst, 
+           data = tbl6)  
+m6c3 <- lm(logpgp95 ~ avexpr + edes1975, 
+           data = tbl6)
+m6c4 <- lm(logpgp95 ~ avexpr + edes1975 + lat_abst, 
+           data = tbl6)
+m6c5 <- lm(logpgp95 ~ avexpr + steplow + deslow + stepmid + desmid +
+              drystep + drywint + goldm + iron + silv + zinc + oilres + landlock, 
+           data = tbl6)
+m6c6 <- lm(logpgp95 ~ avexpr + steplow + deslow + stepmid + desmid +
+              drystep + drywint + goldm + iron + silv + zinc + oilres + landlock +
+             lat_abst, 
+           data = tbl6)
+m6c7 <- lm(logpgp95 ~ avexpr + avelf, 
+           data = tbl6)
+m6c8 <- lm(logpgp95 ~ avexpr + avelf + lat_abst, 
+           data = tbl6)
+m6c9 <- lm(logpgp95 ~ avexpr + steplow + deslow + stepmid + desmid +
+              drystep + drywint + goldm + iron + silv + zinc + oilres + landlock +
+             lat_abst + temp1 + temp2 + temp3 + temp4 + temp5 +
+             humid1 + humid2 + humid3 + humid4 + edes1975 + avelf, 
+           data = tbl6)
+
+stargazer(m6c1, m6c2, m6c3, m6c4, m6c5, m6c6, m6c7, m6c8, m6c9,
+          header = FALSE, 
+          keep = "avexpr",
+         title = "Panel C: Ordinary Least Squares",
+         font.size = "scriptsize",
+         omit.stat = c("f", "adj.rsq", "ser", "rsq", "n"),
+         star.cutoffs = 0,
+         dep.var.caption = "Dependent Variable: Log GDP per capita, 1995",
+#         dep.var.labels = c(" "),
+         model.names = FALSE,
+         column.labels = c("Base", "Base", "Base", "Base",
+                           "Base", "Base", "Base", "Base", "Base"),
+         dep.var.labels.include = FALSE,
+         notes = c("Panel C reports the OLS coefficient from regressing log GDP per capita on average protection against", "expropriation risk, with other control variables indicated in that column (full results not reported to", "save space)."),
+         notes.align = "l"
+,         notes.append = FALSE,
+         digits = 2)
+```
+
+
+### Table 7 - Geography and Health Variables
+
+```{r results = 'asis'}
+tbl7 <- read.dta("maketable7.dta") %>% 
+  filter(baseco == 1) %>%
+  mutate(
+    other_cont = ifelse(shortnam %in% c("AUS", "MLT", "NLZ"), 1, 0)
+  )
+
+## PANEL A 
+m7a1 <- ivreg(logpgp95 ~ avexpr + malfal94 | logem4 + malfal94, data = tbl7)
+m7a2 <- ivreg(logpgp95 ~ avexpr + malfal94 + lat_abst | 
+                logem4 + malfal94 + lat_abst, data = tbl7)
+m7a3 <- ivreg(logpgp95 ~ avexpr + leb95 | logem4 + leb95, data = tbl7)
+m7a4 <- ivreg(logpgp95 ~ avexpr + leb95 + lat_abst | 
+                logem4 + leb95 + lat_abst, data = tbl7)
+m7a5 <- ivreg(logpgp95 ~ avexpr + imr95 | logem4 + imr95, data = tbl7)
+m7a6 <- ivreg(logpgp95 ~ avexpr + imr95 + lat_abst | 
+                logem4 + imr95 + lat_abst, data = tbl7)
+m7a7 <- ivreg(logpgp95[] ~ avexpr + malfal94 | 
+                logem4 + lat_abst + meantemp + lt100km, data = tbl7)
+m7a8 <- ivreg(logpgp95[] ~ avexpr + leb95 | 
+                logem4 + lat_abst + meantemp + lt100km, data = tbl7)
+m7a9 <- ivreg(logpgp95[] ~ avexpr + imr95 | 
+                logem4 + lat_abst + meantemp + lt100km, data = tbl7)
+m7a10 <- ivreg(logpgp95 ~ avexpr | 
+                 yellow, data = tbl7)
+m7a11 <- ivreg(logpgp95 ~ avexpr + africa + asia + other_cont | 
+                 yellow + africa + asia + other_cont, data = tbl7)
+
+stargazer(m7a1, m7a2, m7a3, m7a4, m7a5, m7a6, m7a7, m7a8, m7a9, m7a10, m7a11,
+          header = FALSE, 
+          keep = c("avexpr", "lat_abst", "malfal94", "leb95", "imr95"),
+         title = "Panel A: Two-Stage Least Squares",
+         font.size = "scriptsize",
+         omit.stat = c("f", "adj.rsq", "ser", "rsq", "n"),
+         star.cutoffs = 0,
+         dep.var.caption = "Dependent Variable: Log GDP per capita, 1995",
+         dep.var.labels = c("Instrumenting for avexpr", 
+                            "Instrumenting for all RHS", 
+                            "Yellow fever"),
+         model.names = FALSE,
+         dep.var.labels.include = TRUE,
+         notes = c("Panel A reports the two-stage least-squares estimates with log GDP per capita (PPP basis)", "in 1995.", 
+                   "Columns (1)-(6) instrument for average protection against expropriation risk (avexpr) using log", "mortality and assume that the other regressors are exogenous. Columns (7)-(9) include as instruments", "average temperature, amount of territory within 100 km of the coast, and latitude. Columns (10) and", "(11) use a dummy variable for whether or not a country was subject to yellow fever epidemics before", "1900 as an instrument for average protection against expropriation.", "Column (11) also includes dummy variables for Asian, African and `other' countries (not shown here)."),
+         notes.align = "l"
+,         notes.append = FALSE,
+         digits = 2
+)
+
+## PANEL B
+m7b1 <- lm(avexpr ~ logem4 + malfal94, data = tbl7)
+m7b2 <- lm(avexpr ~ logem4 + malfal94 + lat_abst, data = tbl7)
+m7b3 <- lm(avexpr ~ logem4 + leb95, data = tbl7)
+m7b4 <- lm(avexpr ~ logem4 + leb95 + lat_abst, data = tbl7)
+m7b5 <- lm(avexpr ~ logem4 + imr95, data = tbl7)
+m7b6 <- lm(avexpr ~ logem4 + imr95 + lat_abst, data = tbl7)
+m7b7 <- lm(avexpr ~ logem4 + lat_abst + meantemp + lt100km, data = tbl7)
+m7b8 <- lm(avexpr ~ logem4 + lat_abst + meantemp + lt100km, data = tbl7)
+m7b9 <- lm(avexpr ~ logem4 + lat_abst + meantemp + lt100km, data = tbl7)
+m7b10 <- lm(avexpr ~ yellow, data = tbl7)
+m7b11 <- lm(avexpr ~ yellow + asia + africa + other_cont, data = tbl7)
+
+stargazer(m7b1, m7b2, m7b3, m7b4, m7b5, m7b6, m7b7, m7b8, m7b9, m7b10, m7b11,
+          header = FALSE, 
+          keep = c("logem4", "lat_abst", "malfal94", "leb95", "imr95", "meantemp",
+                   "lt100km", "yellow"),
+         title = "Panel B: First Stage for Average Protection Against Expropriation Risk in 1985-1995",
+         font.size = "scriptsize",
+         omit.stat = c("f", "adj.rsq", "ser", "n"),
+         star.cutoffs = 0,
+         dep.var.caption = " ",
+         model.names = FALSE,
+         dep.var.labels.include = FALSE,
+         notes = c("Column (11) includes dummy variables for Asian, African and `other' countries (not shown here)."),
+         notes.align = "l"
+,         notes.append = FALSE,
+         digits = 2
+)
+
+## PANEL C
+m7c1 <- lm(logpgp95 ~ avexpr + malfal94, data = tbl7)
+m7c2 <- lm(logpgp95 ~ avexpr + malfal94 + lat_abst, data = tbl7)
+m7c3 <- lm(logpgp95 ~ avexpr + leb95, data = tbl7)
+m7c4 <- lm(logpgp95 ~ avexpr + leb95 + lat_abst, data = tbl7)
+m7c5 <- lm(logpgp95 ~ avexpr + imr95, data = tbl7)
+m7c6 <- lm(logpgp95 ~ avexpr + imr95 + lat_abst, data = tbl7)
+m7c7 <- lm(logpgp95 ~ avexpr + malfal94, 
+           data = tbl7[tbl7$logem4 >= 0 & tbl7$latabs >= 0 &
+                         tbl7$meantemp >= 0 & tbl7$lt100km >= 0, ])
+m7c8 <- lm(logpgp95 ~ avexpr + leb95, 
+           data = tbl7[tbl7$logem4 >= 0 & tbl7$latabs >= 0 &
+                         tbl7$meantemp >= 0 & tbl7$lt100km >= 0, ])
+m7c9 <- lm(logpgp95 ~ avexpr + imr95, 
+           data = tbl7[tbl7$logem4 >= 0 & tbl7$latabs >= 0 &
+                         tbl7$meantemp >= 0 & tbl7$lt100km >= 0, ])
+m7c10 <- lm(logpgp95 ~ avexpr, 
+           data = tbl7[tbl7$yellow >= 0, ])
+m7c11 <- lm(logpgp95 ~ avexpr + africa + asia + other_cont, 
+           data = tbl7[tbl7$yellow >= 0, ])
+
+stargazer(m7c1, m7c2, m7c3, m7c4, m7c5, m7c6, m7c7, m7c8, m7c9, m7c10, m7c11,
+          header = FALSE, 
+          keep = "avexpr",
+         title = "Panel C: Ordinary Least Squares",
+         font.size = "scriptsize",
+         omit.stat = c("f", "adj.rsq", "ser", "rsq"),
+         star.cutoffs = 0,
+         dep.var.caption = "Dependent Variable: Log GDP per capita, 1995",
+#         dep.var.labels = c(" "),
+         model.names = FALSE,
+         dep.var.labels.include = FALSE,
+         notes = c("Panel C reports the OLS coefficient from regressing log GDP per capita on average protection against", "expropriation risk, with other control variables indicated in that column (full results not reported to", "save space)."),
+         notes.align = "l"
+,         notes.append = FALSE,
+         digits = 2)
+
+```
+
+
+###Table 8 - Overidentification Tests
+
+
+```{r, message=FALSE, warning=FALSE, results='asis'}
+tbl8 <- read.dta("maketable8.dta") %>%
+  filter(baseco == 1) %>%
+  mutate(
+    euro1900 = (euro1900 / 100)
+  )
+
+## PANEL A 
+m8a1 <- ivreg(logpgp95 ~ avexpr | euro1900, data = tbl8)
+m8a2 <- ivreg(logpgp95 ~ avexpr + lat_abst | euro1900 + lat_abst, data = tbl8)
+m8a3 <- ivreg(logpgp95 ~ avexpr | cons00a, data = tbl8)
+m8a4 <- ivreg(logpgp95 ~ avexpr + lat_abst | cons00a + lat_abst, data = tbl8)
+m8a5 <- ivreg(logpgp95 ~ avexpr | democ00a, data = tbl8)
+m8a6 <- ivreg(logpgp95 ~ avexpr + lat_abst | democ00a + lat_abst, data = tbl8)
+m8a7 <- ivreg(logpgp95 ~ avexpr + indtime | cons1 + indtime, data = tbl8)
+m8a8 <- ivreg(logpgp95 ~ avexpr + indtime + lat_abst | 
+                cons1 + indtime + lat_abst, data = tbl8)
+m8a9 <- ivreg(logpgp95 ~ avexpr + indtime | democ1 + indtime, data = tbl8)
+m8a10 <- ivreg(logpgp95 ~ avexpr + lat_abst + indtime | 
+                 democ1 + lat_abst + indtime, data = tbl8)
+
+stargazer(m8a1, m8a2, m8a3, m8a4, m8a5, m8a6, m8a7, m8a8, m8a9, m8a10,
+          header = FALSE, 
+          keep = c("avexpr", "lat_abst"),
+         title = "Panel A: Two-Stage Least Squares",
+         font.size = "scriptsize",
+         omit.stat = c("f", "adj.rsq", "ser", "rsq", "n"),
+         star.cutoffs = 0,
+         dep.var.caption = "Dependent Variable: Log GDP per capita, 1995",
+#         dep.var.labels = c(" "),
+         model.names = FALSE,
+         dep.var.labels.include = FALSE,
+         notes = c("Panel A reports the two-stage least-squares estimates with log GDP per capita (PPP basis) in 1995 as", "the dependent variable. All models use the base sample.", "All regressions have 60 observations, except those with democracy in 1900, which have 59 observations", "and those with European settlements in 1900 which have 63 observations."),
+         notes.align = "l", 
+         notes.append = FALSE,
+         digits = 2)
+
+## PANEL B
+m8b1 <- lm(avexpr ~ euro1900, data = tbl8)
+m8b2 <- lm(avexpr ~ euro1900 + lat_abst, data = tbl8)
+m8b3 <- lm(avexpr ~ cons00a, data = tbl8)
+m8b4 <- lm(avexpr ~ cons00a + lat_abst, data = tbl8)
+m8b5 <- lm(avexpr ~ democ00a, data = tbl8)
+m8b6 <- lm(avexpr ~ democ00a + lat_abst, data = tbl8)
+m8b7 <- lm(avexpr ~ cons1 + indtime, data = tbl8)
+m8b8 <- lm(avexpr ~ cons1 + indtime + lat_abst, data = tbl8)
+m8b9 <- lm(avexpr ~ democ1 + indtime, data = tbl8)
+m8b10 <- lm(avexpr ~ democ1 + indtime + lat_abst, data = tbl8)
+
+stargazer(m8b1, m8b2, m8b3, m8b4, m8b5, m8b6, m8b7, m8b8, m8b9, m8b10,
+          header = FALSE, 
+          keep = c("euro1900", "cons00a", "democ00a", "cons1", "democ1"),
+         title = "Panel B: First Stage for Average Protection Against Expropriation Risk",
+         font.size = "scriptsize",
+         omit.stat = c("f", "adj.rsq", "ser", "n"),
+         star.cutoffs = 0,
+         dep.var.caption = " ",
+#         dep.var.labels = c(" "),
+         model.names = FALSE,
+         dep.var.labels.include = FALSE,
+         notes = c("Latitude is included in even-numbered columns but is never signficant and not reported here to save space.", "All regressions with constraint on executive and democracy in first year of independence also include years", "since independence as a regressor."),
+         notes.align = "l", 
+         notes.append = FALSE,
+         digits = 2)
+
+## PANEL C
+m8c1 <- ivreg(logpgp95 ~ avexpr | euro1900 + logem4, data = tbl8)
+m8c2 <- ivreg(logpgp95 ~ avexpr + lat_abst | 
+                euro1900 + lat_abst + logem4, data = tbl8)
+m8c3 <- ivreg(logpgp95 ~ avexpr | cons00a + logem4, data = tbl8)
+m8c4 <- ivreg(logpgp95 ~ avexpr + lat_abst | 
+                cons00a + lat_abst + logem4, data = tbl8)
+m8c5 <- ivreg(logpgp95 ~ avexpr | democ00a + logem4, data = tbl8)
+m8c6 <- ivreg(logpgp95 ~ avexpr + lat_abst | 
+                democ00a + lat_abst + logem4, data = tbl8)
+m8c7 <- ivreg(logpgp95 ~ avexpr + indtime | 
+                cons1 + indtime + logem4, data = tbl8)
+m8c8 <- ivreg(logpgp95 ~ avexpr + indtime + lat_abst | 
+                cons1 + indtime + lat_abst + logem4, data = tbl8)
+m8c9 <- ivreg(logpgp95 ~ avexpr + indtime | 
+                democ1 + indtime + logem4, data = tbl8)
+m8c10 <- ivreg(logpgp95 ~ avexpr + lat_abst + indtime | 
+                 democ1 + lat_abst + indtime + logem4, data = tbl8)
+
+hc1 <- hausman.systemfit(m8a1, m8c1)
+hc2 <- hausman.systemfit(m8a2, m8c2)
+hc3 <- hausman.systemfit(m8a3, m8c3)
+hc4 <- hausman.systemfit(m8a4, m8c4)
+hc5 <- hausman.systemfit(m8a5, m8c5)
+hc6 <- hausman.systemfit(m8a6, m8c6)
+hc7 <- hausman.systemfit(m8a7, m8c7)
+hc8 <- hausman.systemfit(m8a8, m8c8)
+hc9 <- hausman.systemfit(m8a9, m8c9)
+hc10 <- hausman.systemfit(m8a10, m8c10)
+
+hausman <- rbind(hc1, hc2, hc3, hc4, hc5, hc6, hc7, hc8, hc9, hc10)
+hausman <- data.frame(hausman[ , 5]) %>%
+  round(digits = 2) %>%
+  mutate(
+    "(1)" = paste("[", hc1, "]", sep = ""),
+    "(2)" = paste("[", hc2, "]", sep = ""),
+    "(3)" = paste("[", hc3, "]", sep = ""),
+    "(4)" = paste("[", hc4, "]", sep = ""),
+    "(5)" = paste("[", hc5, "]", sep = ""),
+    "(6)" = paste("[", hc6, "]", sep = ""),
+    "(7)" = paste("[", hc7, "]", sep = ""),
+    "(8)" = paste("[", hc8, "]", sep = ""),
+    "(9)" = paste("[", hc9, "]", sep = ""),
+    "(10)" = paste("[", hc10, "]", sep = "")
+  )
+
+## Hausman test
+# cf_diff <- coef(m8a1) - coef(m8c1)
+# vc_diff <- vcov(m8a1) - vcov(m8c1)
+# x2_diff <- as.vector(t(cf_diff) %*% solve(vc_diff) %*% cf_diff)
+# pchisq(x2_diff, df = 2, lower.tail = FALSE)
+
+stargazer(m8c1, m8c2, m8c3, m8c4, m8c5, m8c6, m8c7, m8c8, m8c9, m8c10,
+          header = FALSE, 
+          keep = c("avexpr"),
+         title = "Panel C: Results from Overidentification Test",
+         font.size = "scriptsize",
+         omit.stat = c("f", "adj.rsq", "rsq", "ser", "n"),
+         star.cutoffs = 0,
+         dep.var.caption = "Dependent Variable: Log GDP per capita, 1995",
+#         dep.var.labels = c(" "),
+         model.names = FALSE,
+         dep.var.labels.include = FALSE,
+         notes = c("Panel C reports the coefficient on average protection against expropriation risk in the models where", "settler mortality is included with the additional instruments specified in Panel B. The p-value row reports the", "p-value for the null hypothesis that the coefficient on average protection against expropriation", "risk in the 2SLS regression in Panel A is the same as when instrumented using log mortality of", "settlers in addition to the indicated instruments (shown here)."),
+         notes.align = "l", 
+         notes.append = FALSE,
+        add.lines = list(c("p-value", paste("[", hausman$hc1, "]", sep = ""),
+                           paste("[", hausman$hc2, "]", sep = ""),
+                           paste("[", hausman$hc3, "]", sep = ""),
+                           paste("[", hausman$hc4, "]", sep = ""),
+                           paste("[", hausman$hc5, "]", sep = ""),
+                           paste("[", hausman$hc6, "]", sep = ""),
+                           paste("[", hausman$hc7, "]", sep = ""),
+                           paste("[", hausman$hc8, "]", sep = ""),
+                           paste("[", hausman$hc9, "]", sep = ""),
+                           paste("[", hausman$hc10, "]", sep = ""))),
+         digits = 2)
+
+#-----------
+## PANEL D
+m8d1 <- ivreg(logpgp95 ~ avexpr + logem4 | euro1900 + logem4, data = tbl8)
+m8d2 <- ivreg(logpgp95 ~ avexpr + logem4 + lat_abst | 
+                euro1900 + lat_abst + logem4, data = tbl8)
+m8d3 <- ivreg(logpgp95 ~ avexpr + logem4 | cons00a + logem4, data = tbl8)
+m8d4 <- ivreg(logpgp95 ~ avexpr + lat_abst + logem4 | 
+                cons00a + lat_abst + logem4, data = tbl8)
+m8d5 <- ivreg(logpgp95 ~ avexpr + logem4 | democ00a + logem4, data = tbl8)
+m8d6 <- ivreg(logpgp95 ~ avexpr + lat_abst + logem4 | 
+                democ00a + lat_abst + logem4, data = tbl8)
+m8d7 <- ivreg(logpgp95 ~ avexpr + indtime + logem4 | 
+                cons1 + indtime + logem4, data = tbl8)
+m8d8 <- ivreg(logpgp95 ~ avexpr + indtime + lat_abst + logem4 | 
+                cons1 + indtime + lat_abst + logem4, data = tbl8)
+m8d9 <- ivreg(logpgp95 ~ avexpr + indtime + logem4 |
+                democ1 + indtime + logem4, data = tbl8)
+m8d10 <- ivreg(logpgp95 ~ avexpr + lat_abst + indtime + logem4 | 
+                 democ1 + lat_abst + indtime + logem4, data = tbl8)
+
+stargazer(m8d1, m8d2, m8d3, m8d4, m8d5, m8d6, m8d7, m8d8, m8d9, m8d10,
+          header = FALSE, 
+          keep = c("avexpr", "logem4", "lat_abst"),
+         title = "Panel D: Second Stage with Log Mortality as Exogenous Variable",
+         font.size = "scriptsize",
+         omit.stat = c("f", "adj.rsq", "ser", "rsq", "n"),
+         star.cutoffs = 0,
+         dep.var.caption = "Dependent Variable: Log GDP per capita, 1995",
+#         dep.var.labels = c(" "),
+         model.names = FALSE,
+         dep.var.labels.include = FALSE,
+         notes = c("Panel D reports results from the regression in which log mortality is included as an exogenous variable", "and current institutions are instrumented using the alternate instrument indicated in Panel B."),
+         notes.align = "l", 
+         notes.append = FALSE,
+         digits = 2)
+```
+
+
+### Appendix 1 - Variable Names 
+
+```{r}
+v_names <- data.frame(
+    Variable = c("Log GDP per capita (PPP) in 1995", 
+                        "Log output per worker in 1988",
+                        "Average protection against expropriation risk, 1985-95",
+                        "Constraint on executive in first year of independence",
+                        "Democracy in first year of independence",
+                        "Constraint on executive in 1900",
+                        "Democracy in 1900",
+                        "European settlements in 1900",
+                        "Log european settler mortality",
+                        "Absolute latitude",
+                        "Former British colony",
+                        "Former French colony",
+                        "French legal origin",
+                        "Proportion of population of European descent, 1975",
+                         "Average ethnolinguistic fractionalization 
+                        (multiple indices)",
+                        "Proportion of population living in Malaria-endemic areas",
+                 "Life expectancy at birth, 1995",
+                 "Infant mortality rate",
+                 "Average temperature, 1987",
+                 "Proportion of land area within 100km of the seacoast",
+                 "Yellow fever epidemic prior to 1900 (dummy: yes/no)"
+                        ),
+    Name = c("logpgp95",
+             "loghjypl",
+             "avexpr",
+             "cons1",
+              "democ1",
+            "cons00a",
+            "democ00a",
+            "euro1900",
+            "logem4",
+            "lat_abst",
+             "f_brit",
+             "f_french",
+             "sjlofr",
+             "edes1975",
+            "avelf",
+            "malfal94",
+            "leb95",
+            "imr95",
+            "meantemp",
+            "lt100km",
+            "yellow")
+)
+
+pander(v_names)
+```
