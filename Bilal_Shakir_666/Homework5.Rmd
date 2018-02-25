@@ -1,0 +1,343 @@
+---
+title: "Homework5"
+author: "Bilal Shakir"
+date: '2018-02-18'
+bibliography: "/Users/bilalshakir/OneDrive/References/MyLibrary.bib"
+output: html_document
+---
+
+I start off by loading in the necessary data packages. 
+
+```{r}
+
+## clearing out the global environment is a good idea before starting out
+
+remove(list=ls())
+
+## loading in the required datasets
+
+pacman::p_load(tidyr, tidyverse, 
+               ggplot2, ggthemes, 
+               dplyr, RColorBrewer, 
+               gridExtra, 
+               texreg, readr,
+               foreign, readstata13, 
+               interplot, stargazer, 
+               Zelig, broom,
+               car, purrr, 
+               MASS, arm, 
+               pander, knitr, 
+               psych, cowplot, 
+               margins, scales, 
+               pastecs, plm, 
+               survival, ggplot2, 
+               ggrepel, pscl, 
+               GGally, foreign,  
+               RTextTools, feather, 
+               lfe, dplyr, 
+               corrplot, haven, 
+               rdrobust)
+
+## loading in the required data
+
+rdrobust_senate <- read_dta("Assignment5/Stata/rdrobust_senate.dta")
+
+senate_data <- rdrobust_senate
+
+### Load data base
+
+data("rdrobust_RDsenate")
+vote <- rdrobust_RDsenate$vote
+margin <- rdrobust_RDsenate$margin
+
+### Summary stats
+summary(vote)
+summary(margin)
+
+```
+
+This assignment is based on replicating the empirical illustration of the rdrobust package released by Calonico, Cattaneo and Titiunik (2015, hereafter CCT). In the analysis that follows, first, I replicate the results of CCT. Second, I discuss and offer a critical appraisal of these results, with the goal of attempting to underline some key features of Regression Discontinuity Analysis.
+
+The rdrobust package, broadly speaking, constructs two types of RD plots: i) RD plots tracing the underlying regression function or ii) RD plots with binned sample means mimicking the underlying variability of the data. For more technical and methodological details please refer to Calonico, Cattaneo and Titiunik (2015a). In other words, the purpose behind one of the RD plots is to show that it fits the regression line well, whereas, the other RD plot is attempting to underline the variability of the data.
+
+The basic principle of an RD design is fairly intuitive. For an RD design to work, you need three key features: 1) An outcome variable, 2) an assighment variable, 3) an "arbitray" rule or cut-off. Through such an "arbitrary cut-off" the RD design enables us to reproduce a randomized experiment. In the CCT case that is replicated below, our assignment variable is *margin* and our outcome variable is *vote*.  
+
+### *margin*
+
+As highlighted by detailed description of CCT (2015), there are a total of 1297 observations in our data. The variable *margin* records the margin of victory in a given election for a U.S. Senate seat and is calculated by the difference between the vote share of the democratic party minus its strongest opponent. Given the largely two party structure of the U.S., the strongest opponent can, in most cases, be thought of as the Republican party's vote share. 
+
+The outcome of the election is in favour of the Democratic party when the *margin* variable is above zero.
+
+### *vote*
+
+The variable *vote* ranges from 0 to 100 and records the outcome of the (two-periods ahead) election for that given seat. Thus, observations for years 2008 and 2010 have missing votes. The authors exploit the discontinuity in incumbency status that occurs at 0 on margin to employ an RD design. In addition, additional commands that are used include: rdrobust for point estimation and inference procedures, and rdbwselect for data-driven bandwidth selection.
+
+Before proceeding with the RD analysis, it would be useful to just plot and visualize actual values from our data to get some intuition about what our data looks like. 
+
+```{descriptive, results='asis'}
+
+# ifelse(senate_data$margin < 0, 
+#       "Low Senate", 
+#                    ifelse((senate_data$margin > 0), 
+#                                             "High Turnout", NA))
+ggplot(senate_data, 
+       aes(x = margin, y=vote)) +
+  geom_point() +
+  geom_point() +
+  geom_vline(xintercept = 0,
+             linetype="dashed", col="firebrick4") +
+  ggtitle("Figure 0: Plot of Raw Data")
+
+```
+
+The plot above can be misleading as it is possible for an analyst to mistake the relationship between margin and voteshare to be a linear one, or a relationship that can be approximated by a simple OLS modelling strategy. In the analysis that follows, CCT employ an RD design which, inter alia, shows us why using a simple OLS estimation strategy for the relationship between margin and vote is inappropriate.  
+
+In the code chunk below, Figure 1 displays the RD plot with the default bin-select option ("esmv") that estimates evenly spaced mimicking variance command. Following that, I also reproduce additional panels by varying the bin-select command. This helps us to visualize what is required for this regression. Note that we need to conduct an F-test to select the appropriate number of bins. While I have not done so below, this would have been a useful straetgy in selecting the appropriate number of bins by hand. 
+
+
+```{r, results='asis'}
+### rdplot: default
+
+rdp1 <- rdrobust::rdplot(y=rdrobust_RDsenate$vote,
+                         x=rdrobust_RDsenate$margin,
+                         title="Figure 1: RD Plot - Senate Elections Data",
+            y.label="Vote Share in Election at time t+1",
+            x.label="Vote Share in Election at time t"); rdp1
+
+summary(rdp1)
+
+```
+
+Figure 1 notes: As Calonico et al (2015) note, Figure 1 is constructed using the default options in the command 'rdplot', which produces a RD plot with evenly-spaced bins selected to mimic the underlying variability of the data and is implemented using spacings estimators. 
+
+Whereas, the summary command shows that the number of optimal bins for control and treatment units are 15 and 35 respectively. This implies bin lengths of 6.661 and 2.856 percentage points, respectively. Whereas, the global polynomial, in this case, is constructed using a 4th degree polynomial which is the default.
+
+I play around with the following binselect options to better understand how a RD function works by learning from the differences in the visualization. 
+
+binselect:
+
+es: IMSE-optimal evenly-spaced method using spacings estimators. espr: IMSE-optimal evenly-spaced method using polynomial regression. esmv: mimicking variance evenly-spaced method using spacings estimators. This is the default option. 
+esmvpr: mimicking variance evenly-spaced method using polynomial regression. 
+qs: IMSE-optimal quantile-spaced method using spacings estimators. qspr: IMSE-optimal quantile-spaced method using polynomial regression. 
+qsmv: mimicking variance quantile-spaced method using spacings estimators. 
+qsmvpr: mimicking variance quantile-spaced method using polynomial regression.
+
+
+```{r, results='asis'}
+
+## Evenly spaced estimators using evenly spaced method using polynomial regression (ESPR)
+
+rdp1_1 <- rdplot(y=rdrobust_RDsenate$vote,
+                 x=rdrobust_RDsenate$margin,
+                 title="Figure 1b: RD Plot - Senate Elections Data (ESPR)",
+            y.label="Vote Share in Election at time t+1",
+            x.label="Vote Share in Election at time t",
+            binselect = "espr"); rdp1_1
+summary(rdp1_1)
+
+## Evenly spaced estimators using evenly spaced method using polynomial regression (ESMV)
+
+rdp1_2 <- rdplot(y=rdrobust_RDsenate$vote,
+                 x=rdrobust_RDsenate$margin,
+                 title="Figure 1c: RD Plot - Senate Elections Data (ESMV)",
+            y.label="Vote Share in Election at time t+1",
+            x.label="Vote Share in Election at time t",
+            binselect = "esmv"); rdp1_2
+summary(rdp1_2)
+
+## Evenly spaced estimators using evenly spaced method using polynomial regression (ESMVPR)
+
+rdp1_3 <- rdplot(y=rdrobust_RDsenate$vote,
+                 x=rdrobust_RDsenate$margin,
+                 title="Figure 1d: RD Plot - Senate Elections Data (ESMVPR)",
+            y.label="Vote Share in Election at time t+1",
+            x.label="Vote Share in Election at time t",
+            binselect = "esmvpr"); rdp1_3
+summary(rdp1_3)
+
+
+## Evenly spaced estimators using evenly spaced method using polynomial regression (QSPR)
+
+rdp1_4 <- rdplot(y=rdrobust_RDsenate$vote,
+                 x=rdrobust_RDsenate$margin,
+                 title="Figure 1f: RD Plot - Senate Elections Data (QSPR)",
+            y.label="Vote Share in Election at time t+1",
+            x.label="Vote Share in Election at time t",
+            binselect = "qspr"); rdp1_4
+summary(rdp1_4)
+
+## Evenly spaced estimators using evenly spaced method using polynomial regression (QSMV)
+
+rdp1_5 <- rdplot(y=rdrobust_RDsenate$vote,
+                 x=rdrobust_RDsenate$margin,
+                 title="Figure 1: RD Plot - Senate Elections Data (ESPR)",
+            y.label="Vote Share in Election at time t+1",
+            x.label="Vote Share in Election at time t",
+            binselect = "qsmv"); rdp1_5
+summary(rdp1_5)
+
+## Evenly spaced estimators using evenly spaced method using polynomial regression (QSMVPR)
+
+rdp1_6 <- rdplot(y=rdrobust_RDsenate$vote,
+                 x=rdrobust_RDsenate$margin,
+                 title="Figure 1: RD Plot - Senate Elections Data (ESPR)",
+            y.label="Vote Share in Election at time t+1",
+            x.label="Vote Share in Election at time t",
+            binselect = "qsmvpr"); rdp1_6
+summary(rdp1_6)
+
+```
+
+
+##### Figure 2
+
+```{r, results='asis'}
+
+### rdplot: (IMSE-optimal evenly-spaced bins)
+
+rdp2 <- rdplot(y=vote, 
+               x=margin, 
+               binselect="es",
+       title="Figure 2: RD Plot - Senate Elections Data (ES)",
+       y.label="Vote Share in Election at time t+1",
+       x.label="Vote Share in Election at time t"); rdp2
+summary(rdp2)
+
+```
+
+Figure 2 notes: Here, I re-construct an alternative RD plot using evenly-spaced bins selected to trace out the underlying regression function (i.e., using the IMSE-optimal selector) using the "es" model, also implemented using spacings estimators. The resulting plot is given in Figure 2 above. 
+
+While providing a good approximation to the underlying regression function (taking the global polynomial fit as benchmark), the IMSE-optimal number of bins will usually be too small in applications. As CCT (2015) note, this happens because the optimal formulas seek to balance squared bias and variance in order to approximate the underlying regression function globally. 
+
+It is important to underline that in order to better visualise our data or have a visual "cloud of points", we need to increase the number of bins, that is, undersmooth the estimator. In other words, in order to increase the overall variability of the plotted points, we may reduce the bin-length by increasing the total number of bins used. This is achieved by altering the options scale as shown in the code chunk below. 
+
+```{r, results='asis'}
+
+### rdplot: scale=5 (evenly-spaced bins)
+
+rdp3 <- rdplot(y=vote, x=margin, binselect="es", scale=5, 
+            title="Figure 2: RD Plot - Senate Elections Data",
+            y.label="Vote Share in Election at time t+1",
+            x.label="Vote Share in Election at time t"); rdp3
+
+```
+
+
+
+
+
+```{r, results='asis'}
+
+### rdplot: quantile-spaced bins (data-driven automatic option)
+
+rdp4 <- rdplot(y=vote, x=margin, binselect="qs",
+            title="Figure 3: RD Plot - Senate Elections Data",
+            y.label="Vote Share in Election at time t+1",
+            x.label="Vote Share in Election at time t")
+rdp4
+
+```
+
+
+Going for the 'all true' option
+
+```{r}
+
+rdrobust(y = vote, x = margin, all = TRUE)
+
+```
+
+The kernel method is basically the window. The local linear regression is tri
+
+```{r, results='asis'}
+
+### rdrobust: default
+rdrobust(y=vote, x=margin)
+
+### rdrobust: all estimates option
+rdrobust(y=vote, x=margin, all=TRUE)
+
+### rdbwselect: all bandwidth options
+rdbwselect_2014(y=vote, x=margin, all=TRUE)
+
+```
+
+##### Challenges and Solutions with RD: Cross Validation
+
+It would be useful to first start by giving an overview of the Cross Validation function. Note that while it is straightforward to estimate a linear or polynomial regression within a given window of bandwidth around the cut-off point, it is challenging to choose this bandwidth. 
+
+In general, choosing a bandwidth in nonparametric estimation involves finding an optimal balance between precision and bias: While using a larger bandwidth yields more precise estimates, since more data points are used in the regression, as demonstrated above, the linear specification is less likely to be accurate, which can lead to bias when estimating treatment effects. In other words, larger bandwith would lead to smaller confidence intervals but there is a greater change of bias. 
+
+Here, broadly speaking there are two procedures that have been used for choosing an optimal bandwidth for nonparametric regressions and have been used for RD designs. The first is a cross-validation procedure; the second “plugs-in” a “rule-of-thumb” bandwidth and parameter estimates from the data into an optimal bandwidth formula to get the desired bandwidth. Both procedures are based on the concept of mean square error (MSE), which measures the trade-off between bias and precision.
+
+Note that as the bandwidth in an RD set up gets larger, the estimates are more precise, but the potential for bias is also larger. The Cross-Validation Procedure is a formal way of choosing this optimal bandwidth.  
+
+#### The Cross-Validation Procedure
+
+The first formal way of choosing the optimal bandwidth, which is used widely in the literature, is called the “leave-one-out” cross-validation procedure. Recently, Ludwig and Miller (2005) and Imbens and Lemieux (2008) have proposed a version of the “leave-one-out” cross validation procedure that is tailored for the RD design. An objective function showcasing this procedure is outlined in the code chunk below this analysis. 
+
+Note that the process for this cross-validation procedure can be carried out as follows:
+
+1. Select a bandwidth �.
+2. Start with an observation A to the left of the cut-point�.
+3. To see how well the parametric assumption fits the data within the bandwidth, run a regression of the outcome on the rating using all of the observations that are located to the left of observatin A
+4. Get the predicted value of the outcome variable observation A based on this regression and call this predicted value
+5. Shift the "band" slightly over to the left and repeat this process to obtain predicted values for observation B. Repeat this process to obtain predicted values for all observations to the left of the cut-point. 
+6. Then repeat this process to obtain predicted values for all observations to the right of the cut-point; stop when there are fewer than two observations.
+7. Calculate the cross-validation criterion (CV) — in this case, the mean square error 
+8. Repeat the above steps for other bandwidth choices 
+9. Pick the bandwidth that minimizes the cross-validation criterion, that is, pick the bin width that produces the smallest mean square error.
+(Adapted from Jacob et al 2012)
+
+```{r}
+
+### rdbwselect: CV option with plot
+
+rdbwselect_2014(y=vote, x=margin, bwselect="CV",
+           cvgrid_min=10, cvgrid_max=80, cvplot=TRUE)
+
+```
+
+
+
+```{r, results='asis'}
+
+### Other examples not reported in paper.
+### rdrobust: using uniform kernel (instead of default, triangular kernel)
+rdrobust(y=vote, x=margin, kernel="uniform")
+
+### rdrobust: using IK bandwidth selection (instead of default, CCT)
+rdrobust(y=vote, x=margin, bwselect="msetwo")
+
+### rdrobust: using CV bandwidth selection (instead of default, CCT)
+rdrobust(y=vote, x=margin, bwselect="msecomb2")
+
+### rdrobust: using manual bandwidths (instead of default, data-driven automatic)
+rdrobust(y=vote, x=margin, h=15, rho=0.8)
+
+### rdrobust: using higher-order polynomials
+### (instead of default, p=1 (local-linear) & q=2 (local-quadratic))
+rdrobust(y=vote, x=margin, p=2, q=4)
+
+### rdrobust: using residual plug-in standard errors
+### (instead of nearest-neighbor residuals)
+#rdrobust(y=vote, x=margin, vce="resid")
+
+### rdrobust: sharp kink RD (first derivative of regression functions)
+#rdrobust(y=vote, x=margin, deriv= "hc0")
+
+```
+
+###### Concluding Remarks 
+
+Note that for sharp RD, nu, or the order of the derivative has a value of 0. In such a scenario we are just looking at the difference in y since ((d^0)y)/(dx^0) = y). Whereas in sharp kink RD, nu is 1, so we are looking at the difference in the coefficients of x (since ((d^1)y)/(dx^1)= b). So based on the empirical illustration outlined by CCT the nu tells us whether it is sharp RD or sharp kink RD. 
+
+More importantly, as Bailey (2016) outlines, while Regression Discontinuity (RD) analysis is an extremely useful and powerful econometric tool, it is not without its pitfalls. Crucially, some issues include that if people can manipulate their score on the assignment variable, then the RD estimates no longer capture just the effect of the treatment. Moreover, it will additionally capture the effects of whatever qualities are overrepresented among the people who were able to boost their assignment score above the cut-off thresholds. One crucial diagnostic that can help us in identifying such a scenario is by showing a histogram of the observations that shows if there is a spike right after or before the treatment. This follows with the advice of Imbens and Lemiex (2008).
+
+Bibliography:
+
+Calonico, Sebastian, Matias D. Cattaneo, and Rocio Titiunik. "rdrobust: An r package for robust nonparametric inference in regression-discontinuity designs." R Journal 7, no. 1 (2015): 38-51.
+
+Calonico, Sebastian, Matias D. Cattaneo, and Rocio Titiunik. "Robust nonparametric confidence intervals for regression‐discontinuity designs." Econometrica 82, no. 6 (2014): 2295-2326.
+
+Jacob, R., Zhu, P., Somers, M.A. and Bloom, H., 2012. A Practical Guide to Regression Discontinuity. MDRC.
